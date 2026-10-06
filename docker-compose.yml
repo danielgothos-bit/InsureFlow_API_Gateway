@@ -1,0 +1,29 @@
+services:
+  gateway:
+    build: .
+    container_name: gateway
+    ports:
+      - "8080:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/gateway_db
+      CORS_ALLOWED_ORIGINS: "*"
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16
+    container_name: gateway_db
+    environment:
+      POSTGRES_DB: gateway_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5512:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

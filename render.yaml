@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: insureflow-gateway
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gateway-db
+          property: connectionString
+      # Firma de los JWT: debe ser larga y secreta.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DEBUG
+        value: "0"
+      # Dominio del frontend en Vercel (separados por coma), o * para permitir todos.
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      # Usuario administrador inicial (se crea al arrancar).
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      # URL pública de cada microservicio (ej: https://payment-service-xxxx.onrender.com)
+      - key: POLICYHOLDER_SERVICE_URL
+        sync: false
+      - key: POLICY_SERVICE_URL
+        sync: false
+      - key: CLAIMS_SERVICE_URL
+        sync: false
+      - key: ADJUSTER_SERVICE_URL
+        sync: false
+      - key: PAYMENT_SERVICE_URL
+        sync: false
+      - key: DOCUMENT_SERVICE_URL
+        sync: false
+      - key: NOTIFICATION_SERVICE_URL
+        sync: false
+      - key: ANALYTICS_SERVICE_URL
+        sync: false
+
+databases:
+  - name: gateway-db
+    databaseName: gateway_db
+    user: gateway_user
+    plan: free
