@@ -91,8 +91,8 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": os.getenv("RATE_LIMIT_ANON", "30/min"),
-        "user": os.getenv("RATE_LIMIT_USER", "120/min"),
+        "anon": os.getenv("RATE_LIMIT_ANON", "60/min"),
+        "user": os.getenv("RATE_LIMIT_USER", "600/min"),
     },
     "EXCEPTION_HANDLER": "comun.errores.manejar_error",
 }

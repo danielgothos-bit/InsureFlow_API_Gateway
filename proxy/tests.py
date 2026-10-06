@@ -75,6 +75,16 @@ class GatewayTests(APITestCase):
         resp = self.client.get("/api/v1/analitica/fraude", HTTP_AUTHORIZATION=f"Bearer {tokens['access']}")
         self.assertEqual(resp.status_code, 503)
 
+    @mock.patch.dict("os.environ", {"PROXY_WAKE_WAIT": "0"})
+    @mock.patch("proxy.views.requests.request")
+    def test_reintenta_mientras_el_servicio_despierta(self, request):
+        dormido = mock.Mock(status_code=502, content=b"<html>502</html>", headers={"Content-Type": "text/html"})
+        request.side_effect = [dormido, dormido, RespuestaFalsa()]
+        tokens = self.registrar_y_login()
+        resp = self.client.get("/api/v1/siniestros", HTTP_AUTHORIZATION=f"Bearer {tokens['access']}")
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(request.call_count, 3)
+
     def test_health(self):
         self.assertEqual(self.client.get("/health").status_code, 200)
 

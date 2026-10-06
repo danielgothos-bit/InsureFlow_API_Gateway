@@ -9,7 +9,7 @@ Punto único de entrada de InsureFlow (sección 7 del documento de arquitectura)
 - **Autenticación centralizada con JWT + refresh tokens** (sección 12.1). Contraseñas con **bcrypt** (12.2).
 - **Validación de tokens:** sin token válido responde `401` sin llamar al microservicio.
 - **Roles:** `asegurado`, `agente`, `perito`, `admin`. Analítica solo para agente/admin; peritos e inspecciones para agente/perito/admin.
-- **Rate limiting:** 120 solicitudes/min por usuario y 30/min anónimas (configurable).
+- **Rate limiting:** 600 solicitudes/min por usuario y 60/min anónimas (configurable).
 - **Logging centralizado:** cada solicitud se registra en JSON (método, ruta, usuario, estado, duración, `X-Request-Id`).
 - **CORS:** solo los orígenes autorizados (`CORS_ALLOWED_ORIGINS`).
 
@@ -47,7 +47,7 @@ El gateway envía a cada microservicio `X-User-Id`, `X-User-Role` y `X-Request-I
 - `<SERVICIO>_SERVICE_URL`: URL de cada microservicio (POLICYHOLDER, POLICY, CLAIMS, ADJUSTER, PAYMENT, DOCUMENT, NOTIFICATION, ANALYTICS)
 - `CORS_ALLOWED_ORIGINS`: dominios del frontend separados por coma
 - `ADMIN_USERNAME`, `ADMIN_PASSWORD`: administrador inicial
-- `RATE_LIMIT_USER`, `RATE_LIMIT_ANON`: límites de solicitudes (por defecto `120/min` y `30/min`)
+- `RATE_LIMIT_USER`, `RATE_LIMIT_ANON`: límites de solicitudes (por defecto `600/min` y `60/min`)
 
 ## Ejecución local
 

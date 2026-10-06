@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -56,16 +57,29 @@ class ProxyView(APIView):
         })
         url = f"{base.rstrip('/')}/api/v1/{ruta}"
 
-        try:
-            resp = requests.request(
-                request.method, url, params=request.GET, data=request.body, headers=cabeceras,
-                timeout=(10, float(os.getenv("PROXY_TIMEOUT", "90"))), allow_redirects=False,
-            )
-        except requests.Timeout:
-            return error("GATEWAY_TIMEOUT", f"{servicio} no respondió a tiempo.", status.HTTP_504_GATEWAY_TIMEOUT)
-        except requests.RequestException:
-            logger.exception("error reenviando solicitud", extra={"servicio": servicio, "url": url})
-            return error("SERVICE_UNAVAILABLE", f"{servicio} no está disponible.", status.HTTP_503_SERVICE_UNAVAILABLE)
+        # En Render gratis un servicio dormido responde 502/503 mientras despierta (~1 minuto):
+        # el gateway espera y reintenta en lugar de devolverle ese error al cliente.
+        intentos = int(os.getenv("PROXY_WAKE_RETRIES", "6"))
+        for intento in range(intentos + 1):
+            try:
+                resp = requests.request(
+                    request.method, url, params=request.GET, data=request.body, headers=cabeceras,
+                    timeout=(10, float(os.getenv("PROXY_TIMEOUT", "90"))), allow_redirects=False,
+                )
+            except requests.Timeout:
+                return error("GATEWAY_TIMEOUT", f"{servicio} no respondió a tiempo.", status.HTTP_504_GATEWAY_TIMEOUT)
+            except requests.RequestException:
+                logger.exception("error reenviando solicitud", extra={"servicio": servicio, "url": url})
+                return error("SERVICE_UNAVAILABLE", f"{servicio} no está disponible.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+            if resp.status_code not in (502, 503, 504) or intento == intentos:
+                break
+            logger.info("servicio despertando, reintentando", extra={"servicio": servicio, "intento": intento + 1})
+            time.sleep(float(os.getenv("PROXY_WAKE_WAIT", "10")))
+
+        if resp.status_code in (502, 503, 504) and "text/html" in resp.headers.get("Content-Type", ""):
+            return error("SERVICE_WAKING", f"{servicio} se está iniciando. Intenta de nuevo en unos segundos.",
+                         status.HTTP_503_SERVICE_UNAVAILABLE)
 
         respuesta = HttpResponse(resp.content, status=resp.status_code)
         for clave, valor in resp.headers.items():
