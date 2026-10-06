@@ -1,6 +1,7 @@
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import requests
 from django.db import connection
@@ -86,6 +87,14 @@ class ProxyView(APIView):
 
     def delete(self, request, ruta):
         return self._reenviar(request, ruta)
+
+
+FRONTEND = Path(__file__).resolve().parent / "frontend" / "index.html"
+
+
+def inicio(request):
+    """Consola web de InsureFlow: el mismo link del gateway sirve el frontend de prueba."""
+    return HttpResponse(FRONTEND.read_bytes(), content_type="text/html; charset=utf-8")
 
 
 @api_view(["GET"])

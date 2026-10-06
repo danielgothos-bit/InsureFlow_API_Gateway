@@ -77,3 +77,8 @@ class GatewayTests(APITestCase):
 
     def test_health(self):
         self.assertEqual(self.client.get("/health").status_code, 200)
+
+    def test_frontend_en_la_raiz(self):
+        resp = self.client.get("/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(b"InsureFlow", resp.content)

@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InsureFlow · Consola de prueba</title>
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --text: #1b2333; --muted: #667085; --line: #e3e7ef;
+    --brand: #3b4cca; --brand-soft: #eef0fd; --ok: #12805c; --ok-soft: #e3f6ee;
+    --warn: #b54708; --warn-soft: #fef0e1; --bad: #c4321f; --bad-soft: #fde8e5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  header { background: #161d33; color: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; letter-spacing: .3px; }
+  header h1 span { color: #9aa6ff; font-weight: 500; }
+  header .user { margin-left: auto; display: flex; gap: 10px; align-items: center; color: #c9cfe6; }
+  nav { display: flex; gap: 4px; padding: 8px 20px; background: #fff; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  nav button { border: 0; background: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  nav button.on { background: var(--brand-soft); color: var(--brand); }
+  main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .card h2 { font-size: 15px; margin: 0 0 12px; }
+  .card h3 { font-size: 13px; margin: 16px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+  input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; background: #fff; }
+  textarea { min-height: 70px; resize: vertical; }
+  .row { display: flex; gap: 10px; } .row > * { flex: 1; }
+  .btn { margin-top: 12px; border: 0; background: var(--brand); color: #fff; padding: 9px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+  .btn.sec { background: var(--brand-soft); color: var(--brand); }
+  .btn.small { margin: 0; padding: 4px 9px; font-size: 12px; }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  tr.click { cursor: pointer; } tr.click:hover { background: var(--brand-soft); }
+  .mono { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--muted); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; background: var(--line); color: var(--text); }
+  .pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.bad { background: var(--bad-soft); color: var(--bad); } .pill.info { background: var(--brand-soft); color: var(--brand); }
+  .services { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+  .svc { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background: #fff; }
+  .timeline { list-style: none; padding: 0; margin: 0; border-left: 2px solid var(--line); }
+  .timeline li { position: relative; padding: 4px 0 10px 16px; }
+  .timeline li::before { content: ""; position: absolute; left: -6px; top: 9px; width: 10px; height: 10px; border-radius: 50%; background: var(--brand); }
+  .flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0 4px; }
+  .flow .pill { opacity: .35; } .flow .pill.on { opacity: 1; }
+  .msg { padding: 8px 10px; border-radius: 8px; margin-top: 10px; font-size: 13px; white-space: pre-wrap; }
+  .msg.ok { background: var(--ok-soft); color: var(--ok); } .msg.bad { background: var(--bad-soft); color: var(--bad); }
+  .empty { color: var(--muted); font-style: italic; }
+  .kpi { font-size: 26px; font-weight: 700; } .kpi small { font-size: 12px; color: var(--muted); font-weight: 500; display: block; }
+  #login { max-width: 380px; margin: 60px auto; }
+  .hidden { display: none !important; }
+  .live { font-size: 12px; color: var(--ok); }
+</style>
+</head>
+<body>
+<header>
+  <h1>InsureFlow <span>· consola de prueba</span></h1>
+  <div class="user hidden" id="userbox"><span id="whoami"></span><button class="btn small sec" onclick="salir()">Salir</button></div>
+</header>
+
+<section id="login" class="card">
+  <h2>Plataforma de pólizas y siniestros</h2>
+  <p class="mono" style="margin-top:-6px">8 microservicios · API Gateway con JWT · eventos con Celery/Redis</p>
+  <div class="row" style="margin:12px 0 4px">
+    <button class="btn small" id="m_login" onclick="modo('login')">Iniciar sesión</button>
+    <button class="btn small sec" id="m_reg" onclick="modo('registro')">Crear cuenta</button>
+  </div>
+  <div id="f_reg" class="hidden">
+    <label>Correo</label><input id="re" type="email" autocomplete="email">
+  </div>
+  <label>Usuario</label><input id="lu" autocomplete="username">
+  <label>Contraseña</label><input id="lp" type="password" autocomplete="current-password">
+  <button class="btn" id="b_entrar" onclick="entrar()">Entrar</button>
+  <div id="loginmsg"></div>
+  <p class="mono" style="margin-top:14px">Las cuentas nuevas tienen rol <b>asegurado</b>. Peritaje y Analítica requieren rol agente o administrador.
+  Si los servicios estaban inactivos, el primer ingreso puede tardar cerca de un minuto.</p>
+  <details style="margin-top:8px"><summary class="mono">Configuración avanzada</summary>
+    <label>URL del API Gateway</label><input id="gw">
+  </details>
+</section>
+
+<div id="app" class="hidden">
+  <nav id="tabs"></nav>
+  <main id="view"></main>
+</div>
+
+<script>
+const ESTADOS = ["abierto", "en_peritaje", "aprobado", "pagado"];
+const TABS = [
+  ["estado", "Estado"], ["asegurados", "Asegurados"], ["polizas", "Pólizas"], ["pagos", "Pagos"],
+  ["peritos", "Peritaje"], ["siniestros", "Siniestros"], ["analitica", "Analítica"],
+];
+let GW = "", TOKEN = "", USER = null, tab = "estado", refresco = null, siniestroAbierto = null;
+
+const $ = (id) => document.getElementById(id);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const corto = (id) => id ? esc(String(id).slice(0, 8)) + "…" : "";
+const dinero = (v) => v == null ? "" : "$" + Number(v).toLocaleString("es-CO");
+const fecha = (v) => v ? new Date(v).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short" }) : "";
+const hoy = (d = 0) => { const x = new Date(); x.setDate(x.getDate() + d); return x.toISOString().slice(0, 10); };
+const pill = (t) => {
+  const c = { ok: "ok", activa: "ok", pagado: "ok", enviado: "ok", verificado: "ok", completada: "ok", aprobado: "ok",
+              pendiente: "warn", en_peritaje: "warn", programada: "warn", documentacion_pendiente: "warn", abierto: "info",
+              fallido: "bad", rechazado: "bad", cancelada: "bad", vencida: "bad", error: "bad", sin_respuesta: "bad" }[t] || "";
+  return `<span class="pill ${c}">${esc(t)}</span>`;
+};
+
+async function api(path, opts = {}) {
+  const headers = { ...(opts.body && !(opts.body instanceof FormData) ? { "Content-Type": "application/json" } : {}),
+                    ...(TOKEN ? { Authorization: "Bearer " + TOKEN } : {}) };
+  const r = await fetch(GW + path, { ...opts, headers,
+    body: opts.body && !(opts.body instanceof FormData) ? JSON.stringify(opts.body) : opts.body });
+  if (r.status === 401 && TOKEN) { salir(); throw new Error("La sesión expiró, vuelve a entrar."); }
+  const texto = await r.text();
+  let data; try { data = texto ? JSON.parse(texto) : null; } catch { data = texto; }
+  if (!r.ok) {
+    const det = data && data.details ? "\n" + Object.entries(data.details).map(([k, v]) => `${k}: ${[].concat(v).join(" ")}`).join("\n") : "";
+    throw new Error(`${r.status} · ${(data && (data.message || data.detail)) || texto}${det}`);
+  }
+  return data;
+}
+
+function mostrar(id, ok, texto) { const el = $(id); if (el) el.innerHTML = `<div class="msg ${ok ? "ok" : "bad"}">${esc(texto)}</div>`; }
+
+async function enviar(boton, msgId, fn, okTexto) {
+  boton.disabled = true;
+  try { const r = await fn(); mostrar(msgId, true, typeof okTexto === "function" ? okTexto(r) : okTexto); await pintar(); }
+  catch (e) { mostrar(msgId, false, e.message); }
+  finally { boton.disabled = false; }
+}
+
+/* ---------- sesión ---------- */
+let MODO = "login";
+function modo(m) {
+  MODO = m;
+  $("f_reg").classList.toggle("hidden", m !== "registro");
+  $("m_login").classList.toggle("sec", m !== "login");
+  $("m_reg").classList.toggle("sec", m !== "registro");
+  $("b_entrar").textContent = m === "registro" ? "Crear cuenta y entrar" : "Entrar";
+  $("loginmsg").innerHTML = "";
+}
+
+async function entrar() {
+  GW = $("gw").value.replace(/\/$/, "");
+  const boton = $("b_entrar"); boton.disabled = true;
+  mostrar("loginmsg", true, "Conectando con el API Gateway…");
+  try {
+    if (MODO === "registro") {
+      await api("/api/v1/auth/registro", { method: "POST", body: { username: $("lu").value, email: $("re").value, password: $("lp").value } });
+    }
+    const t = await api("/api/v1/auth/login", { method: "POST", body: { username: $("lu").value, password: $("lp").value } });
+    TOKEN = t.access; USER = await api("/api/v1/auth/me");
+    try { sessionStorage.setItem("if", JSON.stringify({ GW, TOKEN })); } catch {}
+    iniciar();
+  } catch (e) { mostrar("loginmsg", false, e.message); }
+  finally { boton.disabled = false; }
+}
+function salir() { TOKEN = ""; try { sessionStorage.removeItem("if"); } catch {} location.reload(); }
+function iniciar() {
+  $("login").classList.add("hidden"); $("app").classList.remove("hidden"); $("userbox").classList.remove("hidden");
+  $("whoami").textContent = `${USER.username} · rol ${USER.role}`;
+  $("tabs").innerHTML = TABS.map(([k, n]) => `<button data-t="${k}" onclick="ir('${k}')">${n}</button>`).join("");
+  ir(tab);
+}
+function ir(t) {
+  tab = t; siniestroAbierto = null; clearInterval(refresco);
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
+  $("view").innerHTML = `<div class="card"><p class="empty">Cargando… si el microservicio estaba inactivo puede tardar cerca de un minuto en despertar.</p></div>`;
+  pintar();
+}
+async function pintar() {
+  try { $("view").innerHTML = await VISTAS[tab](); }
+  catch (e) { $("view").innerHTML = `<div class="card"><div class="msg bad">${esc(e.message)}</div></div>`; }
+}
+
+/* ---------- vistas ---------- */
+const VISTAS = {
+  async estado() {
+    const h = await api("/health/servicios");
+    const nombres = { POLICYHOLDER: "Asegurados", POLICY: "Pólizas", CLAIMS: "Siniestros", ADJUSTER: "Peritaje",
+                      PAYMENT: "Pagos", DOCUMENT: "Documentación", NOTIFICATION: "Notificaciones", ANALYTICS: "Analítica" };
+    return `<div class="card"><h2>Microservicios (vistos a través del API Gateway)</h2>
+      <div class="services">${Object.entries(h.servicios).map(([k, v]) =>
+        `<div class="svc"><div><b>${nombres[k] || k}</b><div class="mono">${k}</div></div>${pill(v.status)}</div>`).join("")}</div>
+      <p class="mono" style="margin-top:12px">Gateway: ${esc(GW)} · todos ok: ${h.todos_ok}</p></div>
+      <div class="card" style="margin-top:16px"><h2>Cómo probar el flujo completo</h2>
+      <ol><li>Asegurados → registra un asegurado.</li><li>Pólizas → emite una póliza para ese asegurado.</li>
+      <li>Pagos → paga la prima.</li><li>Peritaje → registra un perito con la misma especialidad (auto/hogar/vida).</li>
+      <li>Siniestros → reporta un siniestro y ábrelo: verás cómo avanza solo por los eventos.</li>
+      <li>En el detalle del siniestro, carga el informe del perito → se aprueba y se paga automáticamente.</li>
+      <li>Analítica → mira los KPIs actualizados.</li></ol></div>`;
+  },
+
+  async asegurados() {
+    const lista = await api("/api/v1/asegurados");
+    return `<div class="grid"><div class="card"><h2>Registrar asegurado</h2>
+      <div class="row"><div><label>Nombre</label><input id="a_nombre" value="Ana"></div><div><label>Apellido</label><input id="a_apellido" value="Gómez"></div></div>
+      <label>Cédula (national_id)</label><input id="a_doc" value="${Date.now().toString().slice(-10)}">
+      <label>Email</label><input id="a_email" value="ana${Date.now().toString().slice(-5)}@example.com">
+      <div class="row"><div><label>Teléfono</label><input id="a_tel" value="3001234567"></div><div><label>Dirección</label><input id="a_dir" value="Calle 10 # 20-30, Medellín"></div></div>
+      <button class="btn" onclick="crearAsegurado(this)">Registrar</button><div id="a_msg"></div></div>
+      <div class="card"><h2>Asegurados (${lista.length})</h2>${lista.length ? `<table><tr><th>Nombre</th><th>Cédula</th><th>KYC</th><th></th></tr>
+      ${lista.map(a => `<tr><td>${esc(a.nombre)} ${esc(a.apellido)}<div class="mono">${corto(a.id_asegurado)}</div></td><td>${esc(a.national_id)}</td>
+        <td>${pill(a.kyc_status)}</td><td>${a.kyc_status === "pendiente" ? `<button class="btn small sec" onclick="verificar(this,'${a.id_asegurado}')">Verificar KYC</button>` : ""}</td></tr>`).join("")}</table>`
+      : `<p class="empty">Todavía no hay asegurados.</p>`}</div></div>`;
+  },
+
+  async polizas() {
+    const [polizas, asegurados] = await Promise.all([api("/api/v1/polizas"), api("/api/v1/asegurados")]);
+    const nombre = Object.fromEntries(asegurados.map(a => [a.id_asegurado, `${a.nombre} ${a.apellido}`]));
+    return `<div class="grid"><div class="card"><h2>Emitir póliza</h2>
+      ${asegurados.length ? "" : `<div class="msg bad">Primero registra un asegurado.</div>`}
+      <label>Asegurado</label><select id="p_aseg">${asegurados.map(a => `<option value="${a.id_asegurado}">${esc(a.nombre)} ${esc(a.apellido)} · ${esc(a.national_id)}</option>`).join("")}</select>
+      <div class="row"><div><label>Línea</label><select id="p_tipo"><option>auto</option><option>hogar</option><option>vida</option></select></div>
+      <div><label>Prima anual</label><input id="p_prima" type="number" value="1200000"></div></div>
+      <div class="row"><div><label>Inicio de vigencia</label><input id="p_ini" type="date" value="${hoy(-120)}"></div><div><label>Fin de vigencia</label><input id="p_fin" type="date" value="${hoy(245)}"></div></div>
+      <label>Suma asegurada (coverage)</label><input id="p_suma" type="number" value="80000000">
+      <div class="row"><div><label>Beneficiario</label><input id="p_ben" value="Luis Gómez"></div><div><label>% beneficiario</label><input id="p_pct" type="number" value="100"></div></div>
+      <button class="btn" onclick="emitirPoliza(this)">Emitir póliza</button><div id="p_msg"></div></div>
+      <div class="card"><h2>Pólizas (${polizas.length})</h2>${polizas.length ? `<table><tr><th>Póliza</th><th>Asegurado</th><th>Prima</th><th>Estado</th><th></th></tr>
+      ${polizas.map(p => `<tr><td>${esc(p.product_type)}<div class="mono">${corto(p.id_poliza)} · ${esc(p.effective_date)} → ${esc(p.expiry_date)}</div></td>
+        <td>${esc(nombre[p.id_asegurado] || corto(p.id_asegurado))}</td><td>${dinero(p.premium)}</td><td>${pill(p.status)}</td>
+        <td>${p.status !== "cancelada" ? `<button class="btn small sec" onclick="accionPoliza(this,'${p.id_poliza}','renovar')">Renovar</button>
+          <button class="btn small sec" onclick="accionPoliza(this,'${p.id_poliza}','cancelar')">Cancelar</button>` : ""}</td></tr>`).join("")}</table>
+      ` : `<p class="empty">Todavía no hay pólizas.</p>`}<div id="pl_msg"></div></div></div>`;
+  },
+
+  async pagos() {
+    const polizas = await api("/api/v1/polizas");
+    const sel = $("g_pol")?.value || polizas[0]?.id_poliza;
+    const historial = sel ? await api(`/api/v1/pagos/primas/poliza/${sel}`) : [];
+    return `<div class="grid"><div class="card"><h2>Pagar prima</h2>
+      ${polizas.length ? "" : `<div class="msg bad">Primero emite una póliza.</div>`}
+      <label>Póliza</label><select id="g_pol" onchange="pintar()">${polizas.map(p => `<option value="${p.id_poliza}" ${p.id_poliza === sel ? "selected" : ""} data-prima="${p.premium}">${esc(p.product_type)} · ${corto(p.id_poliza)} · prima ${dinero(p.premium)}</option>`).join("")}</select>
+      <div class="row"><div><label>Valor</label><input id="g_valor" type="number" value="${Number(polizas.find(p => p.id_poliza === sel)?.premium || 0)}"></div>
+      <div><label>Medio de pago</label><select id="g_metodo"><option>pse</option><option>tarjeta</option><option>transferencia</option></select></div></div>
+      <label>Fecha de vencimiento de la cuota</label><input id="g_venc" type="date" value="${hoy()}">
+      <button class="btn" onclick="pagarPrima(this)">Pagar</button><div id="g_msg"></div></div>
+      <div class="card"><h2>Historial de pagos de la póliza</h2>${historial.length ? `<table><tr><th>Pago</th><th>Valor</th><th>Medio</th><th>Estado</th></tr>
+      ${historial.map(h => `<tr><td class="mono">${corto(h.id_pago)}<br>${fecha(h.paid_at)}</td><td>${dinero(h.amount)}</td><td>${esc(h.method)}</td><td>${pill(h.status)}</td></tr>`).join("")}</table>`
+      : `<p class="empty">Sin pagos todavía.</p>`}</div></div>`;
+  },
+
+  async peritos() {
+    const peritos = await api("/api/v1/peritos");
+    return `<div class="grid"><div class="card"><h2>Registrar perito</h2>
+      <label>Nombre</label><input id="r_nombre" value="Carlos Pérez">
+      <div class="row"><div><label>Especialidad</label><select id="r_esp"><option>auto</option><option>hogar</option><option>vida</option></select></div>
+      <div><label>Zona</label><input id="r_zona" value="Medellín"></div></div>
+      <button class="btn" onclick="crearPerito(this)">Registrar</button><div id="r_msg"></div></div>
+      <div class="card"><h2>Peritos (${peritos.length})</h2>${peritos.length ? `<table><tr><th>Nombre</th><th>Especialidad</th><th>Zona</th><th>Carga</th></tr>
+      ${peritos.map(p => `<tr><td>${esc(p.nombre)}</td><td>${esc(p.especialidad)}</td><td>${esc(p.zona)}</td><td>${p.carga_activa}</td></tr>`).join("")}</table>`
+      : `<p class="empty">Registra al menos un perito para que Peritaje pueda asignarlo automáticamente.</p>`}</div></div>`;
+  },
+
+  async siniestros() {
+    if (siniestroAbierto) return detalleSiniestro(siniestroAbierto);
+    const [siniestros, polizas] = await Promise.all([api("/api/v1/siniestros"), api("/api/v1/polizas")]);
+    return `<div class="grid"><div class="card"><h2>Reportar siniestro</h2>
+      ${polizas.length ? "" : `<div class="msg bad">Primero emite una póliza.</div>`}
+      <label>Póliza</label><select id="s_pol">${polizas.map(p => `<option value="${p.id_poliza}">${esc(p.product_type)} · ${corto(p.id_poliza)} · ${esc(p.status)}</option>`).join("")}</select>
+      <div class="row"><div><label>Fecha del incidente</label><input id="s_fecha" type="date" value="${hoy(-1)}"></div>
+      <div><label>Monto estimado</label><input id="s_monto" type="number" value="4500000"></div></div>
+      <label>Descripción</label><textarea id="s_desc">Choque trasero en la Av. 80</textarea>
+      <button class="btn" onclick="reportar(this)">Reportar</button><div id="s_msg"></div></div>
+      <div class="card"><h2>Siniestros (${siniestros.length})</h2>${siniestros.length ? `<table><tr><th>Siniestro</th><th>Monto</th><th>Estado</th></tr>
+      ${siniestros.map(s => `<tr class="click" onclick="abrirSiniestro('${s.id_siniestro}')"><td>${esc(s.descripcion).slice(0, 50)}<div class="mono">${corto(s.id_siniestro)} · ${fecha(s.reported_at)}</div></td>
+        <td>${dinero(s.estimated_amount)}</td><td>${pill(s.status)}</td></tr>`).join("")}</table><p class="mono">Haz clic en un siniestro para ver su seguimiento en vivo.</p>`
+      : `<p class="empty">Todavía no hay siniestros.</p>`}</div></div>`;
+  },
+
+  async analitica() {
+    const [sin, res, fra, ren] = await Promise.all([api("/api/v1/analitica/siniestralidad"), api("/api/v1/analitica/tiempo-resolucion"),
+                                                     api("/api/v1/analitica/fraude"), api("/api/v1/analitica/rentabilidad")]);
+    const tabla = (filas, cols) => filas.length ? `<table><tr>${cols.map(c => `<th>${c[0]}</th>`).join("")}</tr>${filas.map(f => `<tr>${cols.map(c => `<td>${c[1](f)}</td>`).join("")}</tr>`).join("")}</table>` : `<p class="empty">Sin datos todavía.</p>`;
+    return `<div class="grid">
+      <div class="card"><h2>Siniestralidad</h2><div class="row"><div class="kpi">${sin.totales.claim_count}<small>siniestros</small></div><div class="kpi">${dinero(sin.totales.total_amount)}<small>monto estimado</small></div></div>
+        ${tabla(sin.por_linea_y_periodo, [["Línea", f => esc(f.product_type)], ["Periodo", f => esc(f.period)], ["Cantidad", f => f.claim_count], ["Monto", f => dinero(f.total_amount)]])}</div>
+      <div class="card"><h2>Tiempo medio de resolución</h2>${tabla(res, [["Línea", f => esc(f.product_type)], ["Periodo", f => esc(f.period)], ["Días promedio", f => Number(f.avg_days).toFixed(2)], ["Resueltos", f => f.resolved_count]])}</div>
+      <div class="card"><h2>Rentabilidad (loss ratio)</h2>${tabla(ren, [["Línea", f => esc(f.product_type)], ["Primas", f => dinero(f.premiums_earned)], ["Indemnizaciones", f => dinero(f.claims_paid)], ["Loss ratio", f => f.loss_ratio == null ? "—" : Number(f.loss_ratio).toFixed(2)]])}</div>
+      <div class="card"><h2>Alertas de fraude (${fra.siniestros_marcados})</h2>${tabla(fra.alertas, [["Siniestro", f => `<span class="mono">${corto(f.id_siniestro)}</span>`], ["Riesgo", f => pill(Number(f.risk_score).toFixed(2))], ["Motivo", f => esc(f.reason)]])}</div>
+    </div>`;
+  },
+};
+
+/* ---------- detalle de siniestro (seguimiento en vivo) ---------- */
+function abrirSiniestro(id) { siniestroAbierto = id; pintar(); clearInterval(refresco); refresco = setInterval(() => { if (siniestroAbierto && !document.activeElement.matches("textarea,input")) pintar(); }, 3000); }
+function cerrarSiniestro() { siniestroAbierto = null; clearInterval(refresco); pintar(); }
+
+async function detalleSiniestro(id) {
+  const s = await api(`/api/v1/siniestros/${id}`);
+  const [hist, insp, pagos, docs, notis] = await Promise.all([
+    api(`/api/v1/siniestros/${id}/historial`), api(`/api/v1/inspecciones/siniestro/${id}`),
+    api(`/api/v1/pagos/indemnizaciones/siniestro/${id}`), api(`/api/v1/documentos/siniestro/${id}`),
+    api(`/api/v1/notificaciones/asegurado/${s.id_asegurado}`)]);
+  const alcanzado = hist.historial.map(h => h.new_status);
+  const pendiente = insp.find(i => i.status === "programada");
+  return `<button class="btn sec" style="margin:0 0 16px" onclick="cerrarSiniestro()">← Volver</button>
+    <div class="card"><h2>Siniestro ${corto(s.id_siniestro)} ${pill(s.status)} <span class="live">● actualizando en vivo</span></h2>
+      <div class="flow">${ESTADOS.map((e, i) => `${i ? "→" : ""}<span class="pill ${alcanzado.includes(e) ? "on ok" : ""}">${e}</span>`).join(" ")}</div>
+      <p>${esc(s.descripcion)} · ${dinero(s.estimated_amount)} · incidente ${fecha(s.incident_date)}</p>
+      ${["abierto", "en_peritaje", "documentacion_pendiente"].includes(s.status) ? `<div class="row" style="max-width:520px">
+        <button class="btn small sec" onclick="estado(this,'documentacion_pendiente')">Pedir documentación</button>
+        <button class="btn small sec" onclick="estado(this,'aprobado')">Aprobar manualmente</button>
+        <button class="btn small sec" onclick="estado(this,'rechazado')">Rechazar</button></div>` : ""}<div id="e_msg"></div></div>
+    <div class="grid" style="margin-top:16px">
+      <div class="card"><h2>Historial de auditoría</h2><ul class="timeline">${hist.historial.map(h => `<li>${pill(h.new_status)} <span class="mono">${fecha(h.changed_at)}</span></li>`).join("")}</ul></div>
+      <div class="card"><h2>Peritaje</h2>${insp.length ? insp.map(i => `<p>${pill(i.status)} programada ${fecha(i.scheduled_at)}<br><span class="mono">perito ${corto(i.id_perito)}</span></p>
+        ${i.findings ? `<p><b>Hallazgos:</b> ${esc(i.findings)}</p>` : ""}`).join("") : `<p class="empty">Esperando que Peritaje asigne un perito (evento claim.opened)…<br>Si no llega, registra un perito de la misma especialidad.</p>`}
+        ${pendiente ? `<label>Informe del perito (findings)</label><textarea id="i_find">Daño en bomper trasero y baúl. Reparación en taller autorizado.</textarea>
+          <button class="btn" onclick="informe(this,'${pendiente.id_inspeccion}')">Cargar informe</button>` : ""}<div id="i_msg"></div></div>
+      <div class="card"><h2>Pago de indemnización</h2>${pagos.length ? pagos.map(p => `<p>${pill(p.status)} ${dinero(p.amount)} · ${esc(p.method)}<br><span class="mono">${fecha(p.paid_at)}</span></p>`).join("") : `<p class="empty">Se paga automáticamente cuando el siniestro se aprueba (claim.approved).</p>`}</div>
+      <div class="card"><h2>Documentos</h2>${docs.length ? `<table>${docs.map(d => `<tr><td>${esc(d.document_type)}<div class="mono">${d.encrypted ? "🔒 cifrado" : "enlace"} · ${fecha(d.uploaded_at)}</div></td>
+        <td><button class="btn small sec" onclick="descargar('${d.id_documento}','${esc(d.nombre_archivo)}')">Ver</button></td></tr>`).join("")}</table>` : `<p class="empty">Aquí aparecen el informe pericial y el comprobante de pago.</p>`}</div>
+      <div class="card" style="grid-column:1/-1"><h2>Notificaciones del asegurado</h2>${notis.length ? `<table><tr><th>Estado</th><th>Canal</th><th>Mensaje</th><th>Enviada</th></tr>
+        ${notis.map(n => `<tr><td>${pill(n.status)}</td><td>${esc(n.canal)}</td><td>${esc(n.mensaje)}</td><td class="mono">${fecha(n.sent_at)}</td></tr>`).join("")}</table>` : `<p class="empty">Sin notificaciones.</p>`}</div>
+    </div>`;
+}
+
+/* ---------- acciones ---------- */
+const crearAsegurado = (b) => enviar(b, "a_msg", () => api("/api/v1/asegurados", { method: "POST", body: {
+  nombre: $("a_nombre").value, apellido: $("a_apellido").value, national_id: $("a_doc").value,
+  email: $("a_email").value, telefono: $("a_tel").value, direccion: $("a_dir").value } }), r => `Asegurado registrado: ${r.id_asegurado}`);
+const verificar = (b, id) => enviar(b, "a_msg", () => api(`/api/v1/asegurados/${id}/kyc`, { method: "PUT", body: { kyc_status: "verificado" } }), "KYC verificado");
+const emitirPoliza = (b) => enviar(b, "p_msg", () => api("/api/v1/polizas", { method: "POST", body: {
+  id_asegurado: $("p_aseg").value, product_type: $("p_tipo").value, premium: $("p_prima").value,
+  effective_date: $("p_ini").value, expiry_date: $("p_fin").value,
+  coverage: { plan: "todo_riesgo", suma_asegurada: Number($("p_suma").value) },
+  beneficiarios: $("p_ben").value ? [{ nombre: $("p_ben").value, identificacion: "000", relacion: "familiar", porcentaje: $("p_pct").value }] : [] } }),
+  r => `Póliza emitida: ${r.id_poliza} (evento policy.issued → Notificaciones y Analítica)`);
+const accionPoliza = (b, id, accion) => enviar(b, "pl_msg", () => api(`/api/v1/polizas/${id}/${accion}`, { method: accion === "renovar" ? "PUT" : "POST", body: accion === "renovar" ? { meses: 12 } : undefined }), `Póliza ${accion === "renovar" ? "renovada" : "cancelada"}`);
+const pagarPrima = (b) => enviar(b, "g_msg", () => api("/api/v1/pagos/primas", { method: "POST", body: {
+  id_poliza: $("g_pol").value, amount: $("g_valor").value, method: $("g_metodo").value, due_date: $("g_venc").value } }), r => `Pago ${r.status} (evento payment.completed)`);
+const crearPerito = (b) => enviar(b, "r_msg", () => api("/api/v1/peritos", { method: "POST", body: {
+  nombre: $("r_nombre").value, especialidad: $("r_esp").value, zona: $("r_zona").value } }), "Perito registrado");
+const reportar = (b) => enviar(b, "s_msg", async () => {
+  const r = await api("/api/v1/siniestros", { method: "POST", body: { id_poliza: $("s_pol").value,
+    incident_date: new Date($("s_fecha").value + "T12:00:00").toISOString(), estimated_amount: $("s_monto").value, descripcion: $("s_desc").value } });
+  setTimeout(() => abrirSiniestro(r.id_siniestro), 600); return r;
+}, r => `Siniestro reportado (cobertura validada con Pólizas). Abriendo seguimiento…`);
+const estado = (b, nuevo) => enviar(b, "e_msg", () => api(`/api/v1/siniestros/${siniestroAbierto}/estado`, { method: "PUT", body: { status: nuevo } }), `Estado cambiado a ${nuevo}`);
+const informe = (b, id) => enviar(b, "i_msg", () => api(`/api/v1/inspecciones/${id}/informe`, { method: "PUT", body: { findings: $("i_find").value } }), "Informe cargado (evento inspection.completed)");
+
+async function descargar(id, nombre) {
+  const r = await fetch(`${GW}/api/v1/documentos/${id}/archivo`, { headers: { Authorization: "Bearer " + TOKEN } });
+  const blob = await r.blob();
+  if (blob.type.startsWith("text/")) { alert(await blob.text()); return; }
+  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: nombre || id });
+  a.click();
+}
+
+/* ---------- arranque ---------- */
+// Servido por el API Gateway: usa su mismo origen. Abierto en local (puerto 3000): usa el gateway local.
+$("gw").value = location.port === "3000" || location.protocol === "file:" ? "http://localhost:8080" : location.origin;
+
+(async () => {
+  try {
+    const s = JSON.parse(sessionStorage.getItem("if") || "null");
+    if (s) { GW = s.GW; TOKEN = s.TOKEN; USER = await api("/api/v1/auth/me"); iniciar(); }
+  } catch { TOKEN = ""; }
+})();
+$("lp").addEventListener("keydown", e => e.key === "Enter" && entrar());
+</script>
+</body>
+</html>
