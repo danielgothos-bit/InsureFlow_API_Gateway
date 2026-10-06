@@ -51,7 +51,7 @@ class GatewayTests(APITestCase):
     def test_reenvia_al_microservicio(self, request):
         tokens = self.registrar_y_login()
         resp = self.client.post("/api/v1/siniestros?x=1", {"descripcion": "choque"}, format="json",
-                                HTTP_AUTHORIZATION=f"Bearer {tokens['access']}")
+                                HTTP_AUTHORIZATION=f"Bearer {tokens['access']}", HTTP_ACCEPT_ENCODING="gzip, br, zstd")
 
         self.assertEqual(resp.status_code, 201)
         self.assertEqual(resp.content, RespuestaFalsa.content)
@@ -60,6 +60,7 @@ class GatewayTests(APITestCase):
         cabeceras = request.call_args[1]["headers"]
         self.assertEqual(cabeceras["X-User-Role"], "asegurado")
         self.assertNotIn("Authorization", cabeceras)
+        self.assertNotIn("Accept-Encoding", cabeceras)
         self.assertIn(b"choque", request.call_args[1]["data"])
 
     def test_rutas_bloqueadas_y_por_rol(self):

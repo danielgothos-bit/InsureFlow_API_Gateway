@@ -16,8 +16,10 @@ from .rutas import BLOQUEADAS, ROLES_PERMITIDOS, RUTAS
 logger = logging.getLogger("gateway")
 
 # Cabeceras que no se reenvían (hop-by-hop o que el gateway reemplaza).
+# accept-encoding: el gateway negocia su propia compresión (gzip) con el microservicio; si reenviara
+# la del navegador (br, zstd), recibiría respuestas que no sabe descomprimir.
 NO_REENVIAR = {"host", "content-length", "authorization", "connection", "keep-alive", "transfer-encoding",
-               "x-user-id", "x-user-role", "x-internal-token", "cookie"}
+               "accept-encoding", "x-user-id", "x-user-role", "x-internal-token", "cookie"}
 NO_DEVOLVER = {"content-encoding", "content-length", "transfer-encoding", "connection", "keep-alive"}
 
 
