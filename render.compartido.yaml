@@ -1,0 +1,42 @@
+# Despliegue COMPARTIDO: usar cuando la cuenta de Render ya tiene su PostgreSQL y su Redis gratis
+# (los usa otro microservicio). Este servicio crea su PROPIA base de datos (gateway_db) dentro de ese
+# servidor PostgreSQL, y usa su propia cola en el mismo Redis.
+# En Render: New -> Blueprint -> Blueprint Path: render.compartido.yaml
+services:
+  - type: web
+    name: insureflow-gateway
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      # "Internal Database URL" del PostgreSQL que ya existe en esta cuenta.
+      - key: DATABASE_URL
+        sync: false
+      - key: DB_NAME
+        value: gateway_db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DEBUG
+        value: "0"
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: POLICYHOLDER_SERVICE_URL
+        sync: false
+      - key: POLICY_SERVICE_URL
+        sync: false
+      - key: CLAIMS_SERVICE_URL
+        sync: false
+      - key: ADJUSTER_SERVICE_URL
+        sync: false
+      - key: PAYMENT_SERVICE_URL
+        sync: false
+      - key: DOCUMENT_SERVICE_URL
+        sync: false
+      - key: NOTIFICATION_SERVICE_URL
+        sync: false
+      - key: ANALYTICS_SERVICE_URL
+        sync: false
