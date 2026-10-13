@@ -13,7 +13,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .rutas import BLOQUEADAS, ROLES_PERMITIDOS, RUTAS
+from .permisos import autorizar
+from .rutas import BLOQUEADAS, ROLES_PERMITIDOS, RUTAS, RUTAS_PUBLICAS
 
 logger = logging.getLogger("gateway")
 
@@ -34,14 +35,26 @@ class ProxyView(APIView):
 
     parser_classes = []  # el cuerpo se reenvía tal cual (JSON o multipart)
 
+    def get_permissions(self):
+        ruta = (self.kwargs.get("ruta") or "").rstrip("/")
+        if (self.request.method, ruta) in RUTAS_PUBLICAS:
+            return [AllowAny()]
+        return super().get_permissions()
+
     def _reenviar(self, request, ruta):
         recurso = ruta.split("/")[0]
         if recurso in BLOQUEADAS or recurso not in RUTAS:
             return error("NOT_FOUND", "Recurso no encontrado.", status.HTTP_404_NOT_FOUND)
 
-        roles = ROLES_PERMITIDOS.get(recurso)
-        if roles and request.user.role not in roles:
-            return error("FORBIDDEN", "Tu rol no tiene acceso a este recurso.", status.HTTP_403_FORBIDDEN)
+        publica = (request.method, ruta.rstrip("/")) in RUTAS_PUBLICAS
+        cuerpo = request.body
+        if not publica:
+            roles = ROLES_PERMITIDOS.get(recurso)
+            if roles and request.user.role not in roles:
+                return error("FORBIDDEN", "Tu rol no tiene acceso a este recurso.", status.HTTP_403_FORBIDDEN)
+            permitido, cuerpo = autorizar(request.user, request.method, ruta, cuerpo)
+            if not permitido:
+                return error("FORBIDDEN", "No tienes acceso a esta información.", status.HTTP_403_FORBIDDEN)
 
         servicio = RUTAS[recurso]
         base = os.getenv(f"{servicio}_SERVICE_URL")
@@ -50,11 +63,11 @@ class ProxyView(APIView):
                          status.HTTP_503_SERVICE_UNAVAILABLE)
 
         cabeceras = {k: v for k, v in request.headers.items() if k.lower() not in NO_REENVIAR}
-        cabeceras.update({
-            "X-User-Id": str(request.user.id),
-            "X-User-Role": request.user.role,
-            "X-Request-Id": getattr(request._request, "request_id", ""),
-        })
+        cabeceras["X-Request-Id"] = getattr(request._request, "request_id", "")
+        if request.user and request.user.is_authenticated:
+            cabeceras.update({"X-User-Id": str(request.user.id), "X-User-Role": request.user.role})
+        if cuerpo is not request.body:
+            cabeceras["Content-Type"] = "application/json"
         url = f"{base.rstrip('/')}/api/v1/{ruta}"
 
         # En Render gratis un servicio dormido responde 502/503 mientras despierta (~1 minuto):
@@ -63,7 +76,7 @@ class ProxyView(APIView):
         for intento in range(intentos + 1):
             try:
                 resp = requests.request(
-                    request.method, url, params=request.GET, data=request.body, headers=cabeceras,
+                    request.method, url, params=request.GET, data=cuerpo, headers=cabeceras,
                     timeout=(10, float(os.getenv("PROXY_TIMEOUT", "90"))), allow_redirects=False,
                 )
             except requests.Timeout:
@@ -103,12 +116,17 @@ class ProxyView(APIView):
         return self._reenviar(request, ruta)
 
 
-FRONTEND = Path(__file__).resolve().parent / "frontend" / "index.html"
+FRONTEND = Path(__file__).resolve().parent / "frontend"
 
 
 def inicio(request):
-    """Consola web de InsureFlow: el mismo link del gateway sirve el frontend de prueba."""
-    return HttpResponse(FRONTEND.read_bytes(), content_type="text/html; charset=utf-8")
+    """Sitio público de InsureFlow y portal del cliente."""
+    return HttpResponse((FRONTEND / "index.html").read_bytes(), content_type="text/html; charset=utf-8")
+
+
+def gestion(request):
+    """Panel interno: gestor de seguros, perito y administrador (panel de control)."""
+    return HttpResponse((FRONTEND / "gestion.html").read_bytes(), content_type="text/html; charset=utf-8")
 
 
 @api_view(["GET"])

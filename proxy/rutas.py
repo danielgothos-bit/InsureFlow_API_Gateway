@@ -16,11 +16,16 @@ RUTAS = {
     "analitica": "ANALYTICS",
 }
 
-# Rutas restringidas por rol (las demás las puede usar cualquier usuario autenticado).
+# Rutas restringidas por rol. El control fino por objeto (cada asegurado solo ve lo suyo,
+# cada perito solo sus inspecciones) está en permisos.py.
 ROLES_PERMITIDOS = {
     "analitica": {"agente", "admin"},
-    "peritos": {"agente", "perito", "admin"},
-    "inspecciones": {"agente", "perito", "admin"},
+}
+
+# Rutas que se pueden usar sin iniciar sesión (sitio público: cotizar y ver productos).
+RUTAS_PUBLICAS = {
+    ("POST", "polizas/cotizar"),
+    ("GET", "polizas/productos"),
 }
 
 # Rutas internas que nunca se exponen hacia afuera.

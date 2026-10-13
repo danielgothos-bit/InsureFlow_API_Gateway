@@ -1,9 +1,10 @@
 from django.urls import include, path
 
-from proxy.views import ProxyView, health, health_servicios, inicio
+from proxy.views import ProxyView, gestion, health, health_servicios, inicio
 
 urlpatterns = [
     path("", inicio),
+    path("gestion", gestion),
     path("health", health),
     path("health/servicios", health_servicios),
     path("", include("usuarios.urls")),
