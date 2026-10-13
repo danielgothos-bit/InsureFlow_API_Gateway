@@ -560,8 +560,10 @@ async function detalleSiniestro(id) {
           <button class="btn sec small" onclick="estado(this,'aprobado')">Aprobar</button>
           <button class="btn danger small" onclick="estado(this,'rechazado')">Rechazar</button></div>` : ""}<div id="e_msg"></div></div></div>
     <div class="grid3" style="margin-top:20px">
-      ${tarjeta("Peritaje", insp.length ? insp.map(i => `<div class="meta" style="margin:0 0 10px"><span>${pill(i.status)}</span><span>Programada: <b>${fecha(i.scheduled_at)}</b></span></div>
-          ${i.findings ? `<div class="note"><b>Hallazgos:</b> ${esc(i.findings)}</div>` : ""}`).join("") : vacio("Asignando perito…", "search"))}
+      ${tarjeta("Peritaje", (insp.length ? insp.map(i => `<div class="meta" style="margin:0 0 10px"><span>${pill(i.status)}</span><span>Programada: <b>${fecha(i.scheduled_at)}</b></span></div>
+          ${i.findings ? `<div class="note"><b>Hallazgos:</b> ${esc(i.findings)}</div>` : ""}`).join("") : vacio("Asignando perito…", "search")) +
+        (insp.find(i => i.status === "programada") ? `<label>Registrar informe del perito</label><textarea id="i_find" placeholder="Hallazgos de la inspección"></textarea>
+          <button class="btn block" onclick="informe(this,'${insp.find(i => i.status === "programada").id_inspeccion}')">Registrar informe</button><div id="i_msg"></div>` : ""))}
       ${tarjeta("Historial", `<ul class="timeline">${hist.historial.map(h => `<li>${pill(h.new_status)}<div class="mono" style="margin-top:4px">${fecha(h.changed_at)}</div></li>`).join("")}</ul>`)}
       ${tarjeta("Indemnización", pagos.length ? pagos.map(p => `<div class="kpi" style="padding:0"><div class="ic green">${ico("money")}</div><div><div class="v">${dinero(p.amount)}</div>
           <div class="l">${pill(p.status)} ${fecha(p.paid_at)}</div></div></div>`).join("") : vacio("Se paga automáticamente al aprobar el caso.", "money"))}
