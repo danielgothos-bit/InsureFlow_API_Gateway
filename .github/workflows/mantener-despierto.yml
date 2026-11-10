@@ -1,6 +1,6 @@
 # Mantiene despiertos el API Gateway y los 8 microservicios en el plan gratuito de Render
-# (Render los apaga tras 15 minutos sin tráfico). Cada 10 minutos, de lunes a viernes de 8 a.m. a 2 p.m.
-# (hora Colombia), consulta /health/servicios. Fuera de ese horario se duermen para no gastar las
+# (Render los apaga tras 15 minutos sin tráfico). Cada 10 minutos consulta /health/servicios:
+# lunes a viernes de 8 a.m. a 2 p.m. y los MARTES de 3 p.m. a 9 p.m. (clase de las 5 p.m.), hora Colombia. Fuera de ese horario se duermen para no gastar las
 # 750 horas gratis al mes de cada cuenta (varias cuentas alojan 4 servicios). /health/servicios
 # que a su vez llama al /health de cada microservicio.
 # Para desactivarlo: GitHub -> Actions -> "Mantener InsureFlow despierto" -> Disable workflow.
@@ -8,7 +8,9 @@ name: Mantener InsureFlow despierto
 
 on:
   schedule:
-    - cron: "*/10 13-18 * * 1-5"
+    - cron: "*/10 13-18 * * 1-5"   # lun-vie 8 a.m.-2 p.m. Colombia (UTC-5)
+    - cron: "*/10 20-23 * * 2"     # martes 3 p.m.-7 p.m. Colombia
+    - cron: "*/10 0-1 * * 3"       # martes 7 p.m.-9 p.m. Colombia (miércoles en UTC)
   workflow_dispatch:
 
 jobs:
