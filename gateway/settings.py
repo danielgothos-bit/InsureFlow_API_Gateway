@@ -25,6 +25,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "comun.metricas.MetricasMiddleware",
     "proxy.middleware.LogSolicitudesMiddleware",
 ]
 

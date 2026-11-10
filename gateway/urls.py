@@ -1,11 +1,13 @@
 from django.urls import include, path
 
+from comun.metricas import metricas
 from proxy.views import ProxyView, gestion, health, health_servicios, inicio
 
 urlpatterns = [
     path("", inicio),
     path("gestion", gestion),
     path("health", health),
+    path("metrics", metricas),
     path("health/servicios", health_servicios),
     path("", include("usuarios.urls")),
     # Todo lo demás bajo /api/v1/ se reenvía al microservicio correspondiente.

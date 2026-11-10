@@ -13,6 +13,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from comun.metricas import SYNC_LATENCY
+
 from .permisos import autorizar
 from .rutas import BLOQUEADAS, ROLES_PERMITIDOS, RUTAS, RUTAS_PUBLICAS
 
@@ -75,10 +77,11 @@ class ProxyView(APIView):
         intentos = int(os.getenv("PROXY_WAKE_RETRIES", "6"))
         for intento in range(intentos + 1):
             try:
-                resp = requests.request(
-                    request.method, url, params=request.GET, data=cuerpo, headers=cabeceras,
-                    timeout=(10, float(os.getenv("PROXY_TIMEOUT", "90"))), allow_redirects=False,
-                )
+                with SYNC_LATENCY.labels("gateway", servicio).time():
+                    resp = requests.request(
+                        request.method, url, params=request.GET, data=cuerpo, headers=cabeceras,
+                        timeout=(10, float(os.getenv("PROXY_TIMEOUT", "90"))), allow_redirects=False,
+                    )
             except requests.Timeout:
                 return error("GATEWAY_TIMEOUT", f"{servicio} no respondió a tiempo.", status.HTTP_504_GATEWAY_TIMEOUT)
             except requests.RequestException:
