@@ -119,17 +119,19 @@ class ProxyView(APIView):
         return self._reenviar(request, ruta)
 
 
-FRONTEND = Path(__file__).resolve().parent / "frontend"
+SITIO = Path(__file__).resolve().parent / "sitio"
 
 
-def inicio(request):
-    """Sitio público de InsureFlow y portal del cliente."""
-    return HttpResponse((FRONTEND / "index.html").read_bytes(), content_type="text/html; charset=utf-8")
+def sitio(request, ruta=""):
+    """Frontend en React (repositorio InsureFlow_Frontend, compilado en proxy/sitio).
 
-
-def gestion(request):
-    """Panel interno: gestor de seguros, perito y administrador (panel de control)."""
-    return HttpResponse((FRONTEND / "gestion.html").read_bytes(), content_type="text/html; charset=utf-8")
+    Sitio público, portal del cliente (/mi-cuenta) y portal de gestión (/gestion). Es una SPA:
+    cualquier ruta que no sea de la API devuelve index.html y React decide qué pantalla mostrar.
+    Los archivos /assets/* los sirve WhiteNoise (WHITENOISE_ROOT).
+    """
+    respuesta = HttpResponse((SITIO / "index.html").read_bytes(), content_type="text/html; charset=utf-8")
+    respuesta["Cache-Control"] = "no-cache"
+    return respuesta
 
 
 @api_view(["GET"])

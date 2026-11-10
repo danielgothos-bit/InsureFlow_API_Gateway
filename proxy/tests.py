@@ -170,3 +170,15 @@ class GatewayTests(APITestCase):
 
     def test_health(self):
         self.assertEqual(self.client.get("/health").status_code, 200)
+
+
+class FrontendTests(APITestCase):
+    def test_rutas_del_sitio_devuelven_la_spa(self):
+        for ruta in ["/", "/cotizar/auto", "/mi-cuenta/pagos", "/gestion"]:
+            r = self.client.get(ruta)
+            self.assertEqual(r.status_code, 200, ruta)
+            self.assertIn(b'<div id="root">', r.content)
+
+    def test_api_desconocida_no_devuelve_la_spa(self):
+        r = self.client.get("/api/v1/auth/no-existe")
+        self.assertNotIn(b'<div id="root">', r.content)
