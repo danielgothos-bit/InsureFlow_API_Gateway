@@ -1,9 +1,12 @@
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from django.urls import include, path, re_path
 
 from comun.metricas import metricas
 from proxy.views import ProxyView, health, health_servicios, sitio
 
 urlpatterns = [
+    path("api/schema", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
     path("health", health),
     path("metrics", metricas),
     path("health/servicios", health_servicios),

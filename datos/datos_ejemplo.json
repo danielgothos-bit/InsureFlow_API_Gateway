@@ -1,0 +1,3 @@
+[
+  {"nota": "Los usuarios (con sus contraseñas cifradas) no se publican. El administrador inicial se crea con: python manage.py crear_admin (variables ADMIN_USERNAME y ADMIN_PASSWORD)."}
+]
