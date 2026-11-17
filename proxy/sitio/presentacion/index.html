@@ -315,7 +315,7 @@ img.ev{width:100%;border:1px solid var(--borde);display:block;cursor:zoom-in;bac
         <div class="card" style="margin-top:12px"><h3>Estrategia de ramas (GitFlow)</h3><p><code>main</code> = producción · <code>develop</code> = integración · <code>feature/*</code> = funcionalidades · <code>hotfix/*</code> = correcciones urgentes. Los cambios entran por <b>pull request</b> con el pipeline en verde. Los secretos (Deploy Hook, tokens) viven en <b>GitHub Secrets</b>.</p></div>
       </div>
       <div class="grid">
-        <div><img class="ev" src="img/actions_lista.png" alt="Pestaña Actions con ejecuciones del pipeline"><p class="leyenda">Pestaña Actions: CI en verde en main y develop; la rama de demostración en rojo.</p></div>
+        <div><img class="ev" src="img/actions_lista.png" alt="Pestaña Actions con ejecuciones del pipeline"><p class="leyenda">Pestaña Actions: Deploy y CI en verde en main y develop; la rama de demostración (prueba fallida) en rojo.</p></div>
         <div class="grid g2">
           <div><img class="ev" src="img/ci_exitoso.png" alt="Ejecución exitosa de CI"><p class="leyenda">CI exitoso: lint → pruebas + seguridad → Docker.</p></div>
           <div><img class="ev" src="img/ci_fallido.png" alt="Ejecución fallida por una prueba"><p class="leyenda">Prueba fallida: el pipeline se detiene y <b>no se construye ni se despliega</b>.</p></div>
