@@ -177,8 +177,13 @@ class FrontendTests(APITestCase):
         for ruta in ["/", "/cotizar/auto", "/mi-cuenta/pagos", "/gestion"]:
             r = self.client.get(ruta)
             self.assertEqual(r.status_code, 200, ruta)
-            self.assertIn(b'<div id="root">', r.content)
+            self.assertIn(b'<div id="root">', cuerpo(r))
 
     def test_api_desconocida_no_devuelve_la_spa(self):
         r = self.client.get("/api/v1/auth/no-existe")
-        self.assertNotIn(b'<div id="root">', r.content)
+        self.assertNotIn(b'<div id="root">', cuerpo(r))
+
+
+def cuerpo(r):
+    """La raíz "/" la puede servir WhiteNoise como archivo (respuesta en streaming)."""
+    return b"".join(r.streaming_content) if hasattr(r, "streaming_content") else r.content

@@ -1,5 +1,5 @@
 EVIDENCIA DE PRUEBAS · InsureFlow_API_Gateway
-Fecha: 2026-11-17 12:46
+Fecha: 2026-11-17 13:00
 Comando: USE_SQLITE=1 CELERY_EAGER=1 coverage run manage.py test -v 2
 
 Pruebas exigidas (Momento 3): tests/test_unitarias.py (2 unitarias con mocks) y tests/test_integracion.py (1 de integración).
@@ -21,10 +21,11 @@ test_servicio_caido (proxy.tests.GatewayTests.test_servicio_caido) ... ok
 test_sin_token_responde_401 (proxy.tests.GatewayTests.test_sin_token_responde_401) ... ok
 test_solo_admin_gestiona_usuarios (proxy.tests.GatewayTests.test_solo_admin_gestiona_usuarios) ... ok
 test_login_jwt_me_y_rechazo_sin_token (tests.test_integracion.AutenticacionIntegracionTests.test_login_jwt_me_y_rechazo_sin_token) ... ok
+test_presentacion_de_la_sustentacion_esta_publicada (tests.test_integracion.PresentacionIntegracionTests.test_presentacion_de_la_sustentacion_esta_publicada) ... ok
 test_cliente_no_puede_ver_poliza_ajena (tests.test_unitarias.PermisosUnitTests.test_cliente_no_puede_ver_poliza_ajena) ... ok
 test_cliente_si_puede_ver_su_poliza_y_gestor_todo (tests.test_unitarias.PermisosUnitTests.test_cliente_si_puede_ver_su_poliza_y_gestor_todo) ... ok
 
-Ran 20 tests in 5.843s
+Ran 21 tests in 5.964s
 OK
 
 === Reporte de cobertura (coverage.py) ===

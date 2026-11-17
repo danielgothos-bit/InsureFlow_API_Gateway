@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InsureFlow · Sustentación final</title>
+<meta name="description" content="Sustentación final de InsureFlow Seguros: arquitectura de microservicios, DevOps, pruebas y monitoreo.">
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{--azul:#00218F;--oscuro:#00155C;--medio:#1F3FB5;--claro:#E8EDFB;--rojo:#E3001B;--rojo-claro:#FDE8EA;--tinta:#0B1640;--gris:#5B6478;--borde:#DCE1EC;--fondo:#F4F6FA;--verde:#0E7A4F;--verde-claro:#E6F6EE;--ambar:#9A5B00;--ambar-claro:#FFF4DE}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--fondo);color:var(--tinta);font-family:"Source Sans 3",system-ui,sans-serif;overflow:hidden}
+h1,h2,.serif{font-family:"Source Serif 4",Georgia,serif}
+a{color:inherit}
+.deck{position:relative;height:100%}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:translateX(30px);transition:opacity .35s,transform .35s}
+.slide.on{opacity:1;pointer-events:auto;transform:none}
+.cab{display:flex;align-items:center;gap:18px;padding:18px 40px;background:#fff;border-bottom:1px solid var(--borde);flex:none}
+.cab .marca{display:flex;align-items:center;gap:10px;padding-right:18px;border-right:3px solid var(--rojo)}
+.cab h2{font-size:28px;color:var(--azul);line-height:1.1}
+.cab p{color:var(--gris);font-size:15px;margin-top:2px}
+.cuerpo{flex:1;overflow:auto;padding:26px 40px 90px}
+.logo{width:38px;height:38px;flex:none}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1000px){.g2,.g3,.g4{grid-template-columns:1fr}.cuerpo{padding:18px 16px 90px}.cab{padding:14px 16px}}
+.card{background:#fff;border:1px solid var(--borde);padding:18px 20px;box-shadow:0 6px 24px rgba(0,21,92,.06)}
+.card h3{font-size:18px;color:var(--tinta);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.card p,.card li{font-size:15px;color:var(--gris);line-height:1.45}
+.card ul{padding-left:18px}
+.borde-rojo{border-top:4px solid var(--rojo)}.borde-azul{border-top:4px solid var(--azul)}
+.tag{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;background:var(--claro);color:var(--azul)}
+.tag.rojo{background:var(--rojo-claro);color:var(--rojo)}.tag.verde{background:var(--verde-claro);color:var(--verde)}.tag.ambar{background:var(--ambar-claro);color:var(--ambar)}
+.ico{width:34px;height:34px;display:grid;place-items:center;background:var(--claro);color:var(--azul);font-weight:800;flex:none}
+.pie{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;padding:12px 40px;background:#fff;border-top:1px solid var(--borde);z-index:5}
+.pie .barra{position:absolute;left:0;top:-3px;height:3px;background:var(--rojo);transition:width .3s}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font:700 15px "Source Sans 3",sans-serif;padding:10px 18px;background:var(--azul);color:#fff;text-decoration:none}
+.btn.rojo{background:var(--rojo)}.btn.borde{background:#fff;color:var(--azul);border:2px solid var(--azul);padding:8px 16px}
+.btn:disabled{opacity:.4;cursor:default}
+table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--gris);text-align:left;padding:10px 12px;border-bottom:2px solid rgba(0,33,143,.15);background:#fff;position:sticky;top:0}
+td{padding:9px 12px;border-bottom:1px solid var(--borde);vertical-align:top;line-height:1.35}
+tr.total td{font-weight:800;background:var(--claro);color:var(--azul)}
+.num{text-align:right;white-space:nowrap}
+.pct{font-weight:800;color:var(--verde)}
+code,.mono{font-family:Consolas,"Cascadia Mono",monospace;font-size:13px}
+pre{background:var(--tinta);color:#E8EDFB;padding:14px 16px;font-size:12.5px;line-height:1.5;overflow:auto}
+pre .c{color:#8FA3E8}pre .k{color:#FF8A95}
+img.ev{width:100%;border:1px solid var(--borde);display:block;cursor:zoom-in;background:#fff}
+.leyenda{font-size:13px;color:var(--gris);margin-top:6px}
+/* portada */
+.portada{background:var(--oscuro);color:#fff;overflow:hidden}
+.portada .franja{position:absolute;top:0;bottom:0;right:-120px;width:420px;background:var(--rojo);transform:skewX(-22deg)}
+.portada .franja2{position:absolute;top:0;bottom:0;right:300px;width:22px;background:#fff;transform:skewX(-22deg)}
+.portada .dentro{position:relative;padding:60px 70px;max-width:900px;display:flex;flex-direction:column;gap:22px;height:100%;justify-content:center}
+.portada h1{font-size:54px;line-height:1.05}
+.equipo{display:flex;gap:16px;flex-wrap:wrap}
+.miembro{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);padding:12px 16px;border-left:4px solid var(--rojo)}
+.miembro .av{width:44px;height:44px;border-radius:50%;background:#fff;color:var(--azul);display:grid;place-items:center;font-weight:800}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid rgba(255,255,255,.35);padding:5px 12px;font-size:14px;font-weight:600}
+/* diagrama */
+.diag{display:flex;flex-direction:column;align-items:center;gap:12px}
+.capa{width:100%;max-width:980px;padding:12px;text-align:center;font-weight:800;cursor:pointer;border:2px solid transparent;transition:.2s}
+.capa:hover,.nodo:hover{border-color:var(--rojo)}
+.capa.sel,.nodo.sel{outline:3px solid var(--rojo);outline-offset:2px}
+.nodos{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;width:100%;max-width:980px}
+.nodo{background:#fff;border:2px solid var(--azul);padding:8px 4px;text-align:center;cursor:pointer;font-size:13px;font-weight:800;color:var(--tinta)}
+.nodo small{display:block;font-weight:600;color:var(--gris);font-size:11px}
+.bd{width:100%;max-width:980px;display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+.bd div{background:var(--claro);border-radius:50%/18%;padding:8px 2px;text-align:center;font-size:11px;font-weight:700;color:var(--azul)}
+.bus{width:100%;max-width:980px;background:var(--rojo);color:#fff;text-align:center;font-weight:700;padding:9px;font-size:14px;cursor:pointer}
+.detalle{max-width:980px;width:100%;border-left:5px solid var(--rojo)}
+@media(max-width:1000px){.nodos,.bd{grid-template-columns:repeat(4,1fr)}}
+/* saga */
+.saga{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;counter-reset:p}
+.paso{background:#fff;border:1px solid var(--borde);padding:14px;position:relative}
+.paso b{display:block;color:var(--azul);font-size:15px}
+.paso span{font-size:13px;color:var(--gris)}
+.paso::before{counter-increment:p;content:counter(p);position:absolute;top:-12px;left:12px;width:24px;height:24px;border-radius:50%;background:var(--azul);color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center}
+@media(max-width:1000px){.saga{grid-template-columns:1fr 1fr}}
+.check li{list-style:none;padding-left:26px;position:relative;margin:6px 0}
+.check li::before{content:"✓";position:absolute;left:0;color:var(--verde);font-weight:800}
+.zoom{position:fixed;inset:0;background:rgba(11,22,64,.85);display:none;align-items:center;justify-content:center;z-index:20;cursor:zoom-out;padding:20px}
+.zoom img{max-width:100%;max-height:100%}
+.kbd{font-size:12px;color:var(--gris)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs><symbol id="logo" viewBox="0 0 40 40"><rect width="40" height="40" fill="#00218F"/><path d="M24 0h10L14 40H4Z" fill="#E3001B"/><path d="M9 12h7M9 18h5" stroke="#fff" stroke-width="3"/></symbol></defs></svg>
+<div class="deck" id="deck">
+
+<!-- 0 PORTADA -->
+<section class="slide portada on" data-momento="InsureFlow Seguros">
+  <div class="franja"></div><div class="franja2"></div>
+  <div class="dentro">
+    <div style="display:flex;align-items:center;gap:12px"><svg class="logo" style="width:54px;height:54px"><use href="#logo"/></svg><div><div class="serif" style="font-size:30px;font-weight:700">InsureFlow</div><div style="letter-spacing:.25em;font-size:12px;font-weight:800;opacity:.7">SEGUROS</div></div></div>
+    <p style="letter-spacing:.18em;font-weight:800;font-size:14px;color:#AFC0F5">SUSTENTACIÓN FINAL · ARQUITECTURA Y MODELAMIENTO DE SOFTWARE</p>
+    <h1>Plataforma de seguros de auto, hogar y vida con microservicios</h1>
+    <p style="font-size:19px;color:#DCE1EC;max-width:720px">Cotización, compra, pagos, siniestros y peritaje 100% en línea, con 8 microservicios independientes, un API Gateway y prácticas DevOps.</p>
+    <div class="equipo">
+      <div class="miembro"><div class="av">DC</div><div><b>Daniel Cardona</b><div style="font-size:13px;opacity:.75">danielgothos-bit</div></div></div>
+      <div class="miembro"><div class="av">JR</div><div><b>Juan Rodríguez</b><div style="font-size:13px;opacity:.75">Ingeniería de Sistemas</div></div></div>
+      <div class="miembro"><div class="av">DM</div><div><b>Diego Morelo</b><div style="font-size:13px;opacity:.75">Ingeniería de Sistemas</div></div></div>
+    </div>
+    <div class="chips"><span class="chip">Python 3.12</span><span class="chip">Django REST</span><span class="chip">PostgreSQL</span><span class="chip">Celery + Redis</span><span class="chip">React + TypeScript</span><span class="chip">Tailwind</span><span class="chip">Docker</span><span class="chip">GitHub Actions</span><span class="chip">Render</span><span class="chip">Prometheus</span><span class="chip">Grafana</span></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap"><a class="btn rojo" href="https://insureflow-gateway-kxhm.onrender.com" target="_blank">Ver producción: insureflow-gateway-kxhm.onrender.com</a><button class="btn" style="background:#fff;color:var(--azul)" onclick="ir(1)">Comenzar ›</button></div>
+    <p class="kbd" style="color:#AFC0F5">Usa las flechas ← → del teclado para avanzar.</p>
+  </div>
+</section>
+
+<!-- 1 PROBLEMA Y USUARIOS -->
+<section class="slide" data-momento="Momento 1 de 5 · Contexto del problema">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>El problema y los usuarios</h2><p>Momento 1 de 5 — Contexto del problema y necesidades</p></div></header>
+  <div class="cuerpo">
+    <div class="grid g2">
+      <div>
+        <p class="tag rojo" style="margin-bottom:10px">El problema</p>
+        <div class="grid">
+          <div class="card"><h3>✗ Contratar un seguro es lento</h3><p>El cliente cotiza por teléfono o en oficina, espera días por una propuesta y llena formularios en papel.</p></div>
+          <div class="card"><h3>✗ Siniestros sin trazabilidad</h3><p>El asegurado no sabe en qué va su reclamación: no ve el perito asignado, la inspección ni el pago.</p></div>
+          <div class="card"><h3>✗ Pagos y documentos dispersos</h3><p>Los cobros de primas, las indemnizaciones y los comprobantes se manejan en sistemas separados.</p></div>
+          <div class="card"><h3>✗ Pocos datos para decidir</h3><p>Sin indicadores de siniestralidad, tiempos de resolución ni alertas de fraude, la aseguradora decide a ciegas.</p></div>
+        </div>
+      </div>
+      <div>
+        <p class="tag" style="margin-bottom:10px">Los usuarios</p>
+        <div class="grid">
+          <div class="card borde-azul"><h3>Cliente (asegurado)</h3><p>Quiere cotizar y comprar en minutos, pagar en línea, reportar un siniestro y seguir su caso desde el celular.</p></div>
+          <div class="card borde-azul"><h3>Gestor de seguros</h3><p>Administra asegurados, pólizas, pagos y la bandeja de siniestros; aprueba, rechaza o pide documentos.</p></div>
+          <div class="card borde-azul"><h3>Perito</h3><p>Recibe inspecciones asignadas automáticamente y carga su informe de evaluación de daños.</p></div>
+          <div class="card borde-azul"><h3>Administrador</h3><p>Supervisa el negocio (primas, siniestralidad, fraude), el estado de la plataforma y las cuentas del personal.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 OBJETIVO, JUSTIFICACIÓN, ALCANCE -->
+<section class="slide" data-momento="Momento 1 de 5 · Contexto del problema">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Objetivo, justificación y alcance</h2><p>Momento 1 de 5 — Necesidades de solución</p></div></header>
+  <div class="cuerpo">
+    <div class="card borde-rojo" style="margin-bottom:16px"><h3>Objetivo principal</h3><p style="font-size:17px">Construir una plataforma web de seguros que permita <b>cotizar, contratar, pagar y gestionar siniestros de punta a punta</b>, con servicios independientes, escalables y monitoreados, desplegados automáticamente en la nube.</p></div>
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card"><h3>Independencia</h3><p>Si Pagos falla, el cliente sigue cotizando y reportando siniestros.</p></div>
+      <div class="card"><h3>Aislamiento de datos</h3><p>Cada microservicio tiene su propia base PostgreSQL; nadie lee la base de otro.</p></div>
+      <div class="card"><h3>Despliegue independiente</h3><p>Cada servicio tiene su repositorio, su pipeline y su despliegue en Render.</p></div>
+      <div class="card"><h3>Coordinación</h3><p>La resolución de un siniestro es una Saga coordinada por eventos.</p></div>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h3><span class="tag verde">Dentro del alcance</span></h3><ul class="check"><li>Sitio público y cotizador de auto, hogar y vida (3 planes)</li><li>Portal del cliente: compra, pagos, siniestros, documentos, notificaciones</li><li>Portal de gestión con roles: gestor, perito y administrador</li><li>8 microservicios + API Gateway con JWT</li><li>CI/CD, pruebas con cobertura y monitoreo con Prometheus y Grafana</li></ul></div>
+      <div class="card"><h3><span class="tag ambar">Fuera del alcance (versión académica)</span></h3><ul><li>Cobro real con dinero: la pasarela está simulada detrás de una interfaz intercambiable</li><li>Envío real de SMS (el correo SMTP es opcional por configuración)</li><li>App móvil nativa para peritos: usan el portal web responsive</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 ARQUITECTURA INTERACTIVA -->
+<section class="slide" data-momento="Momento 2 de 5 · Arquitectura">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Arquitectura general del sistema</h2><p>Momento 2 de 5 — Haz clic en cada bloque para ver su detalle</p></div></header>
+  <div class="cuerpo">
+    <div class="diag">
+      <div class="capa" style="background:var(--claro);color:var(--tinta)" data-d="front">Capa 1 · Frontend React + TypeScript + Tailwind (servido por el gateway en Render)</div>
+      <div class="capa" style="background:var(--azul);color:#fff" data-d="gw">Capa 2 · API Gateway (Django) — JWT · roles · permisos por objeto · rate limit · logs · CORS</div>
+      <div class="nodos">
+        <div class="nodo" data-d="pol">Pólizas<small>Policy</small></div><div class="nodo" data-d="ase">Asegurados<small>Policyholder</small></div>
+        <div class="nodo" data-d="sin">Siniestros<small>Claims</small></div><div class="nodo" data-d="per">Peritaje<small>Adjuster</small></div>
+        <div class="nodo" data-d="pag">Pagos<small>Payment</small></div><div class="nodo" data-d="doc">Documentación<small>Document</small></div>
+        <div class="nodo" data-d="not">Notificaciones<small>Notification</small></div><div class="nodo" data-d="ana">Analítica<small>Analytics</small></div>
+      </div>
+      <div class="bd"><div>policy_db</div><div>policyholder_db</div><div>claims_db</div><div>adjuster_db</div><div>payment_db</div><div>document_db</div><div>notification_db</div><div>analytics_db</div></div>
+      <div class="bus" data-d="bus">Bus de eventos asíncronos · Celery + Redis · entrega HTTP con X-Internal-Token e idempotencia</div>
+      <div class="card detalle" id="detalle"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 FUNCIÓN DE CADA MICROSERVICIO -->
+<section class="slide" data-momento="Momento 2 de 5 · Arquitectura">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Función de cada microservicio</h2><p>Momento 2 de 5 — Responsabilidad única por dominio (SRP)</p></div></header>
+  <div class="cuerpo"><div class="grid g4" id="servicios"></div></div>
+</section>
+
+<!-- 5 COMUNICACIÓN -->
+<section class="slide" data-momento="Momento 2 de 5 · Arquitectura">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Comunicación entre servicios y uso de APIs</h2><p>Momento 2 de 5 — REST síncrono + eventos asíncronos</p></div></header>
+  <div class="cuerpo">
+    <div class="grid g2" style="margin-bottom:16px">
+      <div class="card borde-azul"><h3>REST síncrono (cuando se necesita la respuesta ya)</h3><p>Ejemplo: <b>Siniestros → Pólizas</b> valida que la póliza tenga cobertura vigente antes de aceptar el siniestro (<code>GET /api/v1/polizas/{id}/cobertura</code>). Todas las APIs usan el prefijo versionado <code>/api/v1/</code> y responden errores con formato estándar <code>{code, message}</code>.</p>
+        <ul class="check" style="margin-top:8px"><li><b>Timeout</b>: 3 s (60 s en Render por el arranque en frío)</li><li><b>Reintentos</b>: 3 intentos con backoff exponencial (0,5 s · 1 s · 2 s)</li><li><b>Circuit breaker</b>: closed → open tras 3 fallos → half-open a los 30 s</li></ul><p class="leyenda">Archivo: <code>comun/clientes.py</code></p></div>
+      <div class="card borde-rojo"><h3>Eventos asíncronos (consistencia eventual)</h3><p>El dueño del dato publica un evento y los interesados reaccionan sin conocerse entre sí (bajo acoplamiento). Celery reintenta la entrega hasta 5 veces y cada evento se procesa una sola vez (idempotencia con <code>EventoProcesado</code>).</p><p class="leyenda">Archivos: <code>comun/eventos.py</code>, <code>comun/views.py</code>, <code>&lt;app&gt;/handlers.py</code></p></div>
+    </div>
+    <table><thead><tr><th>Evento</th><th>Lo publica</th><th>Lo consumen</th></tr></thead><tbody>
+      <tr><td class="mono">policy.issued / renewed / cancelled</td><td>Pólizas</td><td>Notificaciones, Analítica</td></tr>
+      <tr><td class="mono">policyholder.created / kyc_updated</td><td>Asegurados</td><td>—  (auditoría)</td></tr>
+      <tr><td class="mono">claim.opened</td><td>Siniestros</td><td>Peritaje (asigna perito), Notificaciones, Analítica</td></tr>
+      <tr><td class="mono">inspection.scheduled / completed</td><td>Peritaje</td><td>Siniestros (avanza y aprueba), Documentación (guarda el informe)</td></tr>
+      <tr><td class="mono">claim.approved / rejected / documentation_requested</td><td>Siniestros</td><td>Pagos (indemniza), Notificaciones, Analítica</td></tr>
+      <tr><td class="mono">payment.completed / failed</td><td>Pagos</td><td>Siniestros (cierra o compensa), Documentación (comprobante), Notificaciones, Analítica</td></tr>
+      <tr><td class="mono">document.uploaded</td><td>Documentación</td><td>Siniestros</td></tr>
+    </tbody></table>
+  </div>
+</section>
+
+<!-- 6 SAGA -->
+<section class="slide" data-momento="Momento 2 de 5 · Arquitectura">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Patrón SAGA: resolución de un siniestro</h2><p>Momento 2 de 5 — Saga por coreografía (sin orquestador central)</p></div></header>
+  <div class="cuerpo">
+    <div class="saga" style="margin:14px 0 22px">
+      <div class="paso"><b>Validar cobertura</b><span>Siniestros → Pólizas (REST)</span></div>
+      <div class="paso"><b>Crear siniestro</b><span>Siniestros publica <code>claim.opened</code></span></div>
+      <div class="paso"><b>Asignar perito</b><span>Peritaje elige el de menor carga y publica <code>inspection.scheduled</code></span></div>
+      <div class="paso"><b>Informe y aprobación</b><span><code>inspection.completed</code> → Siniestros aprueba → <code>claim.approved</code></span></div>
+      <div class="paso"><b>Pagar indemnización</b><span>Pagos transfiere y publica <code>payment.completed</code></span></div>
+      <div class="paso"><b>Cerrar y notificar</b><span>Siniestros queda <b>pagado</b>; Documentación y Notificaciones reaccionan</span></div>
+    </div>
+    <div class="grid g2">
+      <div class="card borde-rojo"><h3>Acción compensatoria</h3><p>Si el pago de la indemnización falla (<code>payment.failed</code>), <code>siniestros/handlers.py → on_payment_failed</code> devuelve el caso a <b>"aprobado, pendiente de pago"</b>, lo registra en el historial (auditoría) y se notifica para intervención manual.</p></div>
+      <div class="card"><h3>¿Por qué coreografía?</h3><p>Cada servicio solo conoce los eventos, no la lógica de los demás: Siniestros no sabe cómo se asigna un perito. Agregar un nuevo consumidor (por ejemplo, Analítica) no exige cambiar a los productores.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 BASES DE DATOS -->
+<section class="slide" data-momento="Momento 2 de 5 · Arquitectura">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Manejo de bases de datos</h2><p>Momento 2 de 5 — Database per service</p></div></header>
+  <div class="cuerpo">
+    <div class="grid g3">
+      <div class="card borde-azul"><h3>Una base por microservicio</h3><p>8 bases PostgreSQL independientes (policy_db, claims_db, payment_db…). En Render, los servicios que comparten servidor tienen <b>cada uno su propia base</b> (<code>DB_NAME</code>), sin compartir tablas.</p></div>
+      <div class="card borde-azul"><h3>Integridad sin joins</h3><p>Identificadores globales <b>UUID</b> y referencias externas (<i>FK-ext</i>): <code>siniestro.id_poliza</code> guarda el UUID sin llave foránea física; la validación se hace por API contra el dueño del dato.</p></div>
+      <div class="card borde-azul"><h3>Normalización</h3><p><b>3FN</b> en los servicios transaccionales (beneficiarios, historial de estados, pagos e indemnizaciones separados). Analítica usa un esquema <b>desnormalizado tipo estrella</b> para reportes.</p></div>
+      <div class="card"><h3>Integridad en el modelo</h3><p>Índices y restricciones <code>CHECK</code> del diseño: <code>status IN (...)</code>, <code>premium &gt;= 0</code>, <code>porcentaje BETWEEN 0 AND 100</code>, <code>national_id UNIQUE</code>, vigencia válida.</p></div>
+      <div class="card"><h3>Auditoría</h3><p><code>claim_status_history</code> guarda cada transición del siniestro; <code>document_access_log</code> es de solo inserción: el código impide <code>UPDATE</code> y <code>DELETE</code>.</p></div>
+      <div class="card"><h3>Migraciones y respaldo</h3><p>Migraciones de Django versionadas y aplicadas al arrancar el contenedor. Cada repositorio trae <code>datos/datos_ejemplo.json</code> y <code>datos/respaldo.sql</code> (pg_dump).</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 GATEWAY Y SEGURIDAD -->
+<section class="slide" data-momento="Momento 2 de 5 · Arquitectura">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>API Gateway, autenticación y autorización</h2><p>Momento 2 de 5 — Punto único de entrada</p></div></header>
+  <div class="cuerpo">
+    <div class="grid g2">
+      <div class="card borde-rojo"><h3>Qué hace el gateway</h3><ul class="check">
+        <li>Enruta <code>/api/v1/&lt;servicio&gt;/…</code> al microservicio correcto (<code>proxy/rutas.py</code>)</li>
+        <li>Valida firma y vigencia del <b>JWT</b>: token inválido → <b>401</b> sin llamar al microservicio</li>
+        <li><b>Rate limiting</b>: 60 solicitudes/min anónimas y 600/min por usuario</li>
+        <li><b>Logging</b> centralizado en JSON: método, ruta, usuario, código, duración y <code>request_id</code></li>
+        <li><b>CORS</b> configurable por variable de entorno</li>
+        <li>Sirve el frontend y reintenta mientras los servicios gratuitos despiertan</li></ul></div>
+      <div class="card"><h3>Autenticación y autorización</h3><ul class="check">
+        <li><b>JWT + refresh token</b> (simplejwt): acceso de 30 min y refresh de 7 días</li>
+        <li>Contraseñas con <b>bcrypt</b> (<code>BCryptSHA256PasswordHasher</code>), mínimo 8 caracteres</li>
+        <li><b>Roles</b>: asegurado, agente (gestor), perito y admin</li>
+        <li><b>Permisos por objeto</b> (<code>proxy/permisos.py</code>): un cliente solo ve sus pólizas y siniestros; un perito solo sus inspecciones → <b>403</b></li>
+        <li>Sesiones separadas: los clientes no pueden entrar a <code>/gestion</code></li>
+        <li>Los eventos internos se autentican con <code>X-Internal-Token</code></li></ul></div>
+    </div>
+    <div class="card" style="margin-top:16px"><h3>Protección contra ataques</h3><p><b>SQL Injection</b>: solo se usa el ORM de Django (consultas parametrizadas). <b>XSS</b>: React escapa el contenido y los serializers validan la entrada. <b>CSRF</b>: la API usa JWT en el encabezado y no cookies. <b>Secretos</b>: variables de entorno en Render y GitHub Secrets, nunca en el código (<code>.env.example</code>). <b>Datos sensibles</b>: los documentos se cifran con Fernet (AES).</p></div>
+  </div>
+</section>
+
+<!-- 9 STACK -->
+<section class="slide" data-momento="Momento 3 de 5 · Stack tecnológico">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Stack tecnológico y justificación</h2><p>Momento 3 de 5</p></div></header>
+  <div class="cuerpo">
+    <table><thead><tr><th>Capa</th><th>Tecnología</th><th>¿Por qué la elegimos?</th></tr></thead><tbody>
+      <tr><td><b>Lenguajes</b></td><td>Python 3.12 · TypeScript</td><td>Python: productivo y con un ecosistema maduro para APIs. TypeScript: tipos en el frontend que evitan errores al consumir la API.</td></tr>
+      <tr><td><b>Backend</b></td><td>Django 6 + Django REST Framework</td><td>ORM seguro (evita SQL injection), migraciones versionadas, serializers para validar datos y autenticación lista. Es la misma base en los 8 servicios, así el equipo cambia de servicio sin curva de aprendizaje.</td></tr>
+      <tr><td><b>Base de datos</b></td><td>PostgreSQL (SQLite solo en pruebas)</td><td>Relacional, transaccional (ACID), con CHECK, índices y UUID; gestionado en Render.</td></tr>
+      <tr><td><b>Mensajería</b></td><td>Celery + Redis</td><td>Colas por servicio, reintentos con backoff y ejecución asíncrona de eventos; base de la Saga.</td></tr>
+      <tr><td><b>Frontend</b></td><td>React 18 + Vite + Tailwind CSS</td><td>Componentes reutilizables, build rápido y un diseño consistente con la marca (azul y rojo).</td></tr>
+      <tr><td><b>Seguridad</b></td><td>simplejwt · bcrypt · cryptography (Fernet) · django-cors-headers</td><td>Estándares probados para tokens, hash de contraseñas y cifrado de documentos.</td></tr>
+      <tr><td><b>Contenedores</b></td><td>Docker · Docker Compose</td><td>El mismo contenedor corre en local y en Render; Compose levanta los 9 servicios + Postgres + Redis + Prometheus + Grafana.</td></tr>
+      <tr><td><b>CI/CD</b></td><td>GitHub Actions · GHCR · CodeQL · pip-audit · coverage.py · flake8</td><td>Integrado con los repositorios: pruebas, cobertura, seguridad, imagen versionada y despliegue automático.</td></tr>
+      <tr><td><b>Nube</b></td><td>Render (web services + PostgreSQL + Key Value)</td><td>Despliegue de contenedores Docker con plan gratuito, Blueprints (<code>render.yaml</code>) y Deploy Hooks para CD.</td></tr>
+      <tr><td><b>Observabilidad</b></td><td>Prometheus · Grafana · prometheus-client · logs JSON</td><td>Métricas estándar de la industria, dashboards y alertas sobre los mismos datos.</td></tr>
+      <tr><td><b>Documentación</b></td><td>drf-spectacular (OpenAPI 3 + Swagger UI)</td><td>La documentación de la API se genera del código, así que siempre está al día.</td></tr>
+    </tbody></table>
+  </div>
+</section>
+
+<!-- 10 PRUEBAS -->
+<section class="slide" data-momento="Momento 4 de 5 · Pruebas, despliegue y monitoreo">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Pruebas automatizadas y cobertura</h2><p>Momento 4 de 5 — 2 unitarias con mocks + 1 de integración por microservicio, en <code>tests/</code></p></div></header>
+  <div class="cuerpo">
+    <table><thead><tr><th>Microservicio</th><th>Prueba unitaria 1</th><th>Prueba unitaria 2</th><th>Prueba de integración</th><th class="num">Pruebas</th><th class="num">Cobertura</th></tr></thead><tbody id="pruebas"></tbody></table>
+    <p class="leyenda">Comando: <code>USE_SQLITE=1 CELERY_EAGER=1 coverage run manage.py test -v 2 &amp;&amp; coverage report</code>. La evidencia está en <code>evidencias/evidencia_pruebas.txt</code> y <code>evidencias/reporte_cobertura/</code> de cada repositorio; en GitHub Actions la cobertura aparece en el resumen de la ejecución y como artefacto <code>reporte-cobertura</code>. Mocks usados: <code>unittest.mock</code> sobre otros microservicios, el bus de eventos, la pasarela de pagos y el proveedor de SMS.</p>
+  </div>
+</section>
+
+<!-- 11 CI/CD -->
+<section class="slide" data-momento="Momento 4 de 5 · Pruebas, despliegue y monitoreo">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Pipeline CI/CD con GitHub Actions</h2><p>Momento 4 de 5 — Solo se despliega si las pruebas pasan</p></div></header>
+  <div class="cuerpo">
+    <div class="grid g2">
+      <div>
+<pre><span class="c"># .github/workflows/ci.yml  (cada push y pull request)</span>
+<span class="k">on:</span> push [main, develop, feature/**, hotfix/**] · pull_request
+<span class="k">jobs:</span>
+  lint       → flake8
+  pruebas    → coverage run manage.py test -v 2
+               coverage report + artefacto reporte-cobertura
+  seguridad  → pip-audit -r requirements.txt
+  docker     → build (y push a GHCR en main, tag = commit)
+
+<span class="c"># .github/workflows/deploy.yml</span>
+<span class="k">on:</span> workflow_run: [CI] completed · branches: [main]
+<span class="k">if:</span> conclusion == 'success'      <span class="c"># si CI falla, NO despliega</span>
+  curl -X POST $RENDER_DEPLOY_HOOK_URL  <span class="c"># secreto en GitHub</span>
+  espera a que /health responda
+
+<span class="c"># .github/workflows/codeql.yml → análisis estático de seguridad</span></pre>
+        <div class="card" style="margin-top:12px"><h3>Estrategia de ramas (GitFlow)</h3><p><code>main</code> = producción · <code>develop</code> = integración · <code>feature/*</code> = funcionalidades · <code>hotfix/*</code> = correcciones urgentes. Los cambios entran por <b>pull request</b> con el pipeline en verde. Los secretos (Deploy Hook, tokens) viven en <b>GitHub Secrets</b>.</p></div>
+      </div>
+      <div class="grid">
+        <div><img class="ev" src="img/actions_lista.png" alt="Pestaña Actions con ejecuciones del pipeline"><p class="leyenda">Pestaña Actions: CI en verde en main y develop; la rama de demostración en rojo.</p></div>
+        <div class="grid g2">
+          <div><img class="ev" src="img/ci_exitoso.png" alt="Ejecución exitosa de CI"><p class="leyenda">CI exitoso: lint → pruebas + seguridad → Docker.</p></div>
+          <div><img class="ev" src="img/ci_fallido.png" alt="Ejecución fallida por una prueba"><p class="leyenda">Prueba fallida: el pipeline se detiene y <b>no se construye ni se despliega</b>.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 MONITOREO -->
+<section class="slide" data-momento="Momento 4 de 5 · Pruebas, despliegue y monitoreo">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Monitoreo con Prometheus y Grafana</h2><p>Momento 4 de 5 — Evidencia con datos reales</p></div></header>
+  <div class="cuerpo">
+    <div class="grid g2">
+      <div><img class="ev" src="img/grafana.png" alt="Dashboard de Grafana"><p class="leyenda">Dashboard «InsureFlow — Observabilidad»: servicios activos, siniestros, pagos, errores 5xx, solicitudes por segundo, latencia p95 y latencia entre servicios.</p></div>
+      <div><img class="ev" src="img/prometheus_targets.png" alt="Targets de Prometheus"><p class="leyenda">Prometheus: los 9 targets (<code>/metrics</code>) en estado <b>UP</b>.</p></div>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3>Métricas</h3><p><code>insureflow_http_requests_total</code> (peticiones y tasa de errores por endpoint), <code>insureflow_http_request_duration_seconds</code> (tiempos de respuesta), <code>up</code> (disponibilidad), <code>insureflow_sync_call_duration_seconds</code>, eventos publicados y recibidos y <code>insureflow_claims_reported_total</code> (negocio).</p></div>
+      <div class="card"><h3>Alertas (alertas.yml)</h3><p>ServicioCaido · ErroresFrecuentes · ErroresEnPagos · LlamadaSincronaLenta.</p></div>
+      <div class="card"><h3>Configuración versionada</h3><p><code>monitoreo/prometheus.yml</code> (targets), <code>alertas.yml</code>, provisión del datasource y del dashboard de Grafana, y <code>comun/metricas.py</code> en cada servicio. Health checks: <code>/health</code> y <code>/health/servicios</code>.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 DEMO -->
+<section class="slide" data-momento="Momento 5 de 5 · Demostración funcional">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Demostración funcional en vivo</h2><p>Momento 5 de 5 — Requerimientos validados en producción</p></div></header>
+  <div class="cuerpo">
+    <div class="grid g2">
+      <div class="card borde-azul"><h3>Enlaces de la demostración</h3><ul class="check">
+        <li><a href="https://insureflow-gateway-kxhm.onrender.com" target="_blank">Sitio y portal del cliente</a></li>
+        <li><a href="https://insureflow-gateway-kxhm.onrender.com/gestion" target="_blank">Portal de gestión: gestor, perito y admin</a></li>
+        <li><a href="https://insureflow-gateway-kxhm.onrender.com/health/servicios" target="_blank">Estado de los 8 microservicios</a></li>
+        <li><a href="https://payment-service-rxm7.onrender.com/api/docs" target="_blank">Swagger de un microservicio (Pagos)</a></li></ul>
+        <p class="leyenda" style="margin-top:8px">Usuarios de prueba: el cliente se registra en vivo; gestor (<code>gestor</code>), peritos (<code>perito.auto</code>, <code>perito.hogar</code>, <code>perito.vida</code>) y <code>admin</code> se entregan al docente el día de la sustentación.</p></div>
+      <div class="card borde-rojo"><h3>Requerimientos funcionales a validar</h3><table><tbody>
+        <tr><td><span class="tag verde">Crear</span></td><td>Registrar un cliente, emitir una póliza y reportar un siniestro.</td></tr>
+        <tr><td><span class="tag verde">Consultar</span></td><td>Mis seguros, historial de pagos, seguimiento del caso y analítica.</td></tr>
+        <tr><td><span class="tag verde">Actualizar</span></td><td>Datos de contacto, verificar identidad (KYC), renovar una póliza y cambiar el estado de un siniestro.</td></tr>
+        <tr><td><span class="tag verde">Cancelar</span></td><td>Cancelar una póliza, rechazar un siniestro y desactivar un colaborador.</td></tr>
+        <tr><td><span class="tag verde">Comunicar</span></td><td>Siniestro → Peritaje → Siniestros → Pagos → Documentación → Notificaciones (Saga).</td></tr></tbody></table></div>
+    </div>
+    <div class="card" style="margin-top:16px"><h3>Manejo de errores y casos alternos</h3>
+      <div class="grid g3" style="margin-top:6px">
+        <p><b>Sin cobertura vigente</b>: el siniestro se rechaza (422) por la validación síncrona con Pólizas.</p>
+        <p><b>Servicio caído</b>: timeout, reintentos y circuit breaker → 503 con un mensaje claro y sin datos inconsistentes.</p>
+        <p><b>Pago rechazado</b>: <code>payment.failed</code> → compensación de la Saga.</p>
+        <p><b>Sin token o token vencido</b>: 401 en el gateway.</p>
+        <p><b>Recurso de otro cliente</b>: 403 por los permisos por objeto.</p>
+        <p><b>Datos inválidos</b>: 400 con detalle (fechas, porcentajes, cédula duplicada).</p>
+      </div></div>
+  </div>
+</section>
+
+<!-- 14 MATRIZ -->
+<section class="slide" data-momento="Parte A · Entrega técnica">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Matriz de cumplimiento</h2><p>Parte A.1 — Requerimientos del documento de arquitectura por microservicio</p></div></header>
+  <div class="cuerpo">
+    <table><thead><tr><th>Microservicio</th><th class="num">Asignados</th><th class="num">Cumplidos</th><th class="num">% cumplimiento</th><th>Elementos técnicos</th><th>Pendiente o parcial</th></tr></thead><tbody id="matriz"></tbody></table>
+    <p class="leyenda">Los requerimientos de cada servicio son los del documento de arquitectura: endpoints (sección 4), eventos (5.10), modelo de datos (sección 5) y reglas de negocio. Los marcados como parciales funcionan con una implementación simulada o alternativa, que se explica en la última columna.</p>
+  </div>
+</section>
+
+<!-- 15 REPOSITORIOS Y ENLACES -->
+<section class="slide" data-momento="Parte A · Entrega técnica">
+  <header class="cab"><div class="marca"><svg class="logo"><use href="#logo"/></svg></div><div><h2>Repositorios y enlaces de despliegue</h2><p>Parte A.2 y A.3 — Un repositorio, una base y un despliegue por microservicio</p></div></header>
+  <div class="cuerpo">
+    <table><thead><tr><th>Microservicio</th><th>Repositorio (GitHub)</th><th>Despliegue (Render)</th><th>Documentación API</th></tr></thead><tbody id="repos"></tbody></table>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3>Cada repositorio incluye</h3><p>README (descripción, tecnologías, instalación, ejecución, endpoints, variables), <code>.env.example</code>, <code>.gitignore</code>, <code>tests/</code>, <code>evidencias/</code>, <code>datos/</code> (ejemplo y respaldo), Dockerfile y <code>render.yaml</code>.</p></div>
+      <div class="card"><h3>Integración local</h3><p><code>InsureFlow_Local/docker-compose.yml</code> levanta todo: 9 servicios, PostgreSQL, Redis, Prometheus y Grafana.</p></div>
+      <div class="card"><h3>Frontend</h3><p><a href="https://github.com/danielgothos-bit/InsureFlow_Frontend" target="_blank">InsureFlow_Frontend</a> (React + TS). Se compila dentro del gateway y se publica en el mismo enlace de producción.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 CIERRE -->
+<section class="slide portada" data-momento="InsureFlow Seguros">
+  <div class="franja"></div><div class="franja2"></div>
+  <div class="dentro">
+    <h1>Conclusiones</h1>
+    <ul class="check" style="font-size:19px;color:#DCE1EC;max-width:760px">
+      <li>8 microservicios independientes, cada uno con su base de datos, su repositorio y su despliegue.</li>
+      <li>Saga por eventos con compensación para la resolución de siniestros.</li>
+      <li>Gateway con JWT, roles y permisos por objeto; sitio, portal del cliente y portal de gestión separados.</li>
+      <li>CI/CD: pruebas unitarias y de integración con cobertura antes de cada despliegue.</li>
+      <li>Observabilidad con Prometheus, Grafana, health checks y logs estructurados.</li>
+    </ul>
+    <p class="serif" style="font-size:34px">¡Gracias! ¿Preguntas?</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap"><a class="btn rojo" href="https://insureflow-gateway-kxhm.onrender.com" target="_blank">Abrir InsureFlow</a><button class="btn" style="background:#fff;color:var(--azul)" onclick="ir(0)">Volver al inicio</button></div>
+  </div>
+</section>
+</div>
+
+<footer class="pie" id="pie"><div class="barra" id="barra"></div>
+  <button class="btn borde" onclick="ir(0)">Inicio</button>
+  <span id="momento" style="font-weight:700;color:var(--azul)"></span>
+  <span style="display:flex;align-items:center;gap:10px"><button class="btn borde" id="ant" onclick="ir(n-1)">‹</button><b id="cont"></b><button class="btn" id="sig" onclick="ir(n+1)">›</button></span>
+</footer>
+<div class="zoom" id="zoom" onclick="this.style.display='none'"><img alt="Evidencia ampliada"></div>
+
+<script>
+const SERVICIOS = [
+  ["pol","Pólizas","Policy Service","Cotiza los 3 planes, emite, renueva y cancela pólizas; consulta de cobertura vigente.","POST /polizas · GET /polizas/{id} · PUT /renovar · POST /cancelar · POST /cotizar","policy.issued · renewed · cancelled","policy_db"],
+  ["ase","Asegurados","Policyholder Service","Registro de clientes, datos de contacto y verificación de identidad (KYC) con documentos.","POST /asegurados · GET/PUT /asegurados/{id} · GET/PUT /kyc","policyholder.created · kyc_updated","policyholder_db"],
+  ["sin","Siniestros","Claims Service","Reporte de siniestros, máquina de estados, historial de auditoría y coordinación de la Saga.","POST /siniestros · GET /{id} · PUT /{id}/estado · GET /historial","claim.opened · approved · rejected · documentation_requested","claims_db"],
+  ["per","Peritaje","Adjuster Service","Peritos por especialidad y zona; asignación automática por menor carga; informes de inspección.","GET /peritos/disponibilidad · POST /inspecciones · PUT /{id}/informe","inspection.scheduled · completed","adjuster_db"],
+  ["pag","Pagos","Payment Service","Cobro de primas e indemnizaciones idempotentes a través de una pasarela intercambiable.","POST /pagos/primas · POST /indemnizaciones · historial por póliza o siniestro","payment.completed · failed","payment_db"],
+  ["doc","Documentación","Document Service","Documentos cifrados (Fernet), informe pericial, comprobantes y bitácora de accesos inmutable.","POST /documentos · GET /siniestro/{id} · GET /{id}/archivo","document.uploaded","document_db"],
+  ["not","Notificaciones","Notification Service","Mensajes por correo o SMS con plantillas, historial por asegurado y estado de entrega.","POST /notificaciones · GET /asegurado/{id}","consume claim.*, policy.*, payment.*","notification_db"],
+  ["ana","Analítica","Analytics Service","KPIs de siniestralidad, tiempo de resolución, rentabilidad (loss ratio) y reglas de fraude.","GET /analitica/siniestralidad · tiempo-resolucion · fraude · rentabilidad","consume todos los eventos de negocio","analytics_db (estrella)"],
+];
+const EXTRA = {
+  front: ["Frontend", "React 18 + TypeScript + Tailwind. Sitio público (cotizador en 4 pasos), portal del cliente (/mi-cuenta) y portal de gestión (/gestion) con sesiones separadas. Solo habla con el API Gateway."],
+  gw: ["API Gateway", "Django + simplejwt. Login y registro, validación del JWT (401), roles y permisos por objeto (403), rate limiting, logs JSON con request_id, CORS, reintentos mientras los servicios despiertan, y sirve el frontend compilado."],
+  bus: ["Bus de eventos", "Cada servicio publica eventos con Celery sobre Redis (una cola por servicio). La entrega es por HTTP a /api/v1/eventos con X-Internal-Token, con hasta 5 reintentos con backoff e idempotencia. Base de la consistencia eventual y de la Saga."],
+};
+const URLS = {pol:"policy-service-slra",ase:"policyholder-service-b7j1",sin:"claims-service-k83g",per:"adjuster-service-ofmi",pag:"payment-service-rxm7",doc:"document-service-zjwy",not:"notification-service-ypyl",ana:"analytics-service-jdq6"};
+const REPOS = {pol:"Microservicio_Polizas_Policy_Service",ase:"Microservicio_Asegurados_Policyholder_Service",sin:"Microservicio_Siniestros_Claims_Service",per:"Microservicio_Peritaje_Adjuster_Service",pag:"Microservicio_Pagos_Payment_Service",doc:"Microservicio_Documentacion_Document_Service",not:"Microservicio_Notificaciones_Notification_Service",ana:"Microservicio_Analitica_Analytics_Service"};
+const PRUEBAS = [
+  ["Pólizas","Cotizar vida aplica recargo por edad y calcula la cuota mensual","No emite la póliza si Asegurados no responde (mock: circuit breaker abierto)","Emitir, consultar, renovar y cancelar en la base de datos, verificando los eventos",13,"73 %"],
+  ["Asegurados","El serializer rechaza un correo inválido","Verificar identidad publica policyholder.kyc_updated (mock: bus de eventos)","Registrar, consultar y actualizar contacto; cédula duplicada → 400",8,"62 %"],
+  ["Siniestros","La máquina de estados no permite una transición inválida","Aprobar publica claim.approved con el monto (mock: bus)","Reportar valida cobertura (mock: Pólizas), guarda y consulta el historial",10,"73 %"],
+  ["Peritaje","Elige al perito de la especialidad con menor carga","La asignación automática programa y publica inspection.scheduled (mock)","Programar inspección y cargar el informe por la API",6,"65 %"],
+  ["Pagos","Pasarela rechaza → pago fallido y payment.failed (mock: pasarela)","Monto inválido no llama a la pasarela (mock)","Registrar cobro de prima y consultar el historial en la base de datos",10,"71 %"],
+  ["Documentación","Cifrar y descifrar conserva el contenido (Fernet)","La bitácora de accesos no permite modificar (solo inserción)","El evento payment.completed genera un comprobante descargable",8,"72 %"],
+  ["Notificaciones","Usa la plantilla y los datos del asegurado (mock: Asegurados)","Si el proveedor falla la notificación queda fallida (mock: canal SMS)","Enviar y consultar el historial del asegurado",8,"70 %"],
+  ["Analítica","Agrupa los eventos por periodo (mes)","Marca fraude por reglas de riesgo (mock: siniestro)","Los eventos alimentan el reporte de siniestralidad",6,"68 %"],
+  ["API Gateway","Un cliente no puede ver una póliza ajena (mock: Pólizas)","El cliente ve su póliza y el gestor tiene acceso total (mock)","Login JWT → /me y 401 sin token",21,"61 %"],
+];
+const MATRIZ = [
+  ["Pólizas",10,10,"Cotizador de primas, validación síncrona con Asegurados, 3 eventos","—"],
+  ["Asegurados",8,8,"KYC con documentos, cédula y correo únicos","—"],
+  ["Siniestros",13,13,"Saga con compensación, máquina de estados, auditoría, circuit breaker","—"],
+  ["Peritaje",8,8,"Asignación automática por especialidad, zona y carga","—"],
+  ["Pagos",9,8,"Pasarela de pagos (interfaz + simulador), indemnización idempotente","Pasarela real en sandbox (Wompi/PSE): hoy es simulada"],
+  ["Documentación",7,7,"Cifrado Fernet, bitácora inmutable, comprobantes automáticos","—"],
+  ["Notificaciones",8,7,"Plantillas, correo SMTP configurable, historial y estado de entrega","Envío real de SMS (simulado)"],
+  ["Analítica",9,8,"KPIs, loss ratio, reglas de fraude, esquema estrella","ETL sobre réplicas: se alimenta por eventos"],
+];
+document.getElementById("servicios").innerHTML = SERVICIOS.map(s => `<div class="card borde-azul"><h3>${s[1]}</h3><p class="tag" style="margin-bottom:6px">${s[2]}</p><p>${s[3]}</p><p class="leyenda"><b>API:</b> <code>${s[4]}</code></p><p class="leyenda"><b>Eventos:</b> <code>${s[5]}</code></p><p class="leyenda"><b>BD:</b> ${s[6]}</p></div>`).join("");
+document.getElementById("pruebas").innerHTML = PRUEBAS.map(p => `<tr><td><b>${p[0]}</b></td><td>${p[1]}</td><td>${p[2]}</td><td>${p[3]}</td><td class="num">${p[4]}</td><td class="num pct">${p[5]}</td></tr>`).join("") +
+  `<tr class="total"><td>Total</td><td colspan="3">27 pruebas exigidas (18 unitarias + 9 de integración) — todas aprobadas</td><td class="num">90</td><td class="num">61–73 %</td></tr>`;
+let a = 0, c = 0;
+document.getElementById("matriz").innerHTML = MATRIZ.map(m => { a += m[1]; c += m[2]; return `<tr><td><b>${m[0]}</b></td><td class="num">${m[1]}</td><td class="num">${m[2]}</td><td class="num pct">${Math.round(m[2] / m[1] * 100)} %</td><td>${m[3]}</td><td>${m[4]}</td></tr>`; }).join("") +
+  `<tr class="total"><td>Total</td><td class="num">${a}</td><td class="num">${c}</td><td class="num">${Math.round(c / a * 1000) / 10} %</td><td colspan="2">Cumple el mínimo de 90 %</td></tr>`;
+document.getElementById("repos").innerHTML = SERVICIOS.map(s => `<tr><td><b>${s[1]}</b></td><td><a href="https://github.com/danielgothos-bit/${REPOS[s[0]]}" target="_blank">${REPOS[s[0]]}</a></td><td><a href="https://${URLS[s[0]]}.onrender.com/health" target="_blank">${URLS[s[0]]}.onrender.com</a></td><td><a href="https://${URLS[s[0]]}.onrender.com/api/docs" target="_blank">/api/docs</a></td></tr>`).join("") +
+  `<tr><td><b>API Gateway + sitio</b></td><td><a href="https://github.com/danielgothos-bit/InsureFlow_API_Gateway" target="_blank">InsureFlow_API_Gateway</a></td><td><a href="https://insureflow-gateway-kxhm.onrender.com" target="_blank">insureflow-gateway-kxhm.onrender.com</a></td><td><a href="https://insureflow-gateway-kxhm.onrender.com/api/docs" target="_blank">/api/docs</a></td></tr>`;
+// diagrama interactivo
+const det = document.getElementById("detalle");
+function mostrar(k) {
+  document.querySelectorAll("[data-d]").forEach(e => e.classList.toggle("sel", e.dataset.d === k));
+  const s = SERVICIOS.find(x => x[0] === k);
+  det.innerHTML = s ? `<h3>${s[1]} · ${s[2]}</h3><p>${s[3]}</p><p class="leyenda"><b>API:</b> <code>${s[4]}</code> · <b>Eventos:</b> <code>${s[5]}</code> · <b>Base de datos:</b> ${s[6]} · <b>Desplegado en:</b> ${URLS[k]}.onrender.com</p>`
+    : `<h3>${EXTRA[k][0]}</h3><p>${EXTRA[k][1]}</p>`;
+}
+document.querySelectorAll("[data-d]").forEach(e => e.addEventListener("click", () => mostrar(e.dataset.d)));
+mostrar("gw");
+// zoom de evidencias
+document.querySelectorAll("img.ev").forEach(i => i.addEventListener("click", () => { const z = document.getElementById("zoom"); z.querySelector("img").src = i.src; z.style.display = "flex"; }));
+// navegación
+const slides = [...document.querySelectorAll(".slide")];
+let n = 0;
+function ir(i) {
+  n = Math.max(0, Math.min(slides.length - 1, i));
+  slides.forEach((s, j) => s.classList.toggle("on", j === n));
+  document.getElementById("cont").textContent = `${n + 1} / ${slides.length}`;
+  document.getElementById("momento").textContent = slides[n].dataset.momento;
+  document.getElementById("barra").style.width = `${(n + 1) / slides.length * 100}%`;
+  document.getElementById("ant").disabled = n === 0;
+  document.getElementById("sig").disabled = n === slides.length - 1;
+  document.getElementById("pie").style.display = n === 0 ? "none" : "flex";
+  history.replaceState(null, "", "#" + (n + 1));
+}
+addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "PageDown") ir(n + 1); if (e.key === "ArrowLeft" || e.key === "PageUp") ir(n - 1); if (e.key === "Escape") document.getElementById("zoom").style.display = "none"; });
+ir(parseInt(location.hash.slice(1) || "1", 10) - 1);
+</script>
+</body>
+</html>

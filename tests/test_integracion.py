@@ -14,3 +14,11 @@ class AutenticacionIntegracionTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Bearer " + tokens["access"])
         yo = self.client.get("/api/v1/auth/me").data
         self.assertEqual(yo["role"], "agente")
+
+
+class PresentacionIntegracionTests(APITestCase):
+    def test_presentacion_de_la_sustentacion_esta_publicada(self):
+        resp = self.client.get("/presentacion/")
+        self.assertEqual(resp.status_code, 200)
+        contenido = b"".join(resp.streaming_content)  # WhiteNoise responde como archivo
+        self.assertIn("Sustentación final", contenido.decode())

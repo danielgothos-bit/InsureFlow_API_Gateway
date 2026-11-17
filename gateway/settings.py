@@ -78,6 +78,8 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 # Archivos del frontend compilado (/assets/*.js, /assets/*.css, /favicon.svg) servidos desde la raíz.
 WHITENOISE_ROOT = BASE_DIR / "proxy" / "sitio"
+# /presentacion/ sirve presentacion/index.html (sustentación final).
+WHITENOISE_INDEX_FILE = True
 STORAGES = {
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
