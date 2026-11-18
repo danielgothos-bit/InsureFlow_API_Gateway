@@ -196,7 +196,7 @@ img.ev{width:100%;border:1px solid var(--borde);display:block;cursor:zoom-in;bac
       <tr><td class="mono">policy.issued / renewed / cancelled</td><td>Pólizas</td><td>Notificaciones, Analítica</td></tr>
       <tr><td class="mono">policyholder.created / kyc_updated</td><td>Asegurados</td><td>—  (auditoría)</td></tr>
       <tr><td class="mono">claim.opened</td><td>Siniestros</td><td>Peritaje (asigna perito), Notificaciones, Analítica</td></tr>
-      <tr><td class="mono">inspection.scheduled / completed</td><td>Peritaje</td><td>Siniestros (avanza y aprueba), Documentación (guarda el informe)</td></tr>
+      <tr><td class="mono">inspection.scheduled / completed</td><td>Peritaje</td><td>Siniestros (avanza y deja el caso listo para la decisión del gestor), Documentación (guarda el informe)</td></tr>
       <tr><td class="mono">claim.approved / rejected / documentation_requested</td><td>Siniestros</td><td>Pagos (indemniza), Notificaciones, Analítica</td></tr>
       <tr><td class="mono">payment.completed / failed</td><td>Pagos</td><td>Siniestros (cierra o compensa), Documentación (comprobante), Notificaciones, Analítica</td></tr>
       <tr><td class="mono">document.uploaded</td><td>Documentación</td><td>Siniestros</td></tr>
@@ -212,7 +212,7 @@ img.ev{width:100%;border:1px solid var(--borde);display:block;cursor:zoom-in;bac
       <div class="paso"><b>Validar cobertura</b><span>Siniestros → Pólizas (REST)</span></div>
       <div class="paso"><b>Crear siniestro</b><span>Siniestros publica <code>claim.opened</code></span></div>
       <div class="paso"><b>Asignar perito</b><span>Peritaje elige el de menor carga y publica <code>inspection.scheduled</code></span></div>
-      <div class="paso"><b>Informe y aprobación</b><span><code>inspection.completed</code> → Siniestros aprueba → <code>claim.approved</code></span></div>
+      <div class="paso"><b>Informe y decisión</b><span>El perito envía el informe (<code>inspection.completed</code>); el <b>gestor</b> lo revisa y aprueba (<code>claim.approved</code>) o rechaza (<code>claim.rejected</code>)</span></div>
       <div class="paso"><b>Pagar indemnización</b><span>Pagos transfiere y publica <code>payment.completed</code></span></div>
       <div class="paso"><b>Cerrar y notificar</b><span>Siniestros queda <b>pagado</b>; Documentación y Notificaciones reaccionan</span></div>
     </div>
