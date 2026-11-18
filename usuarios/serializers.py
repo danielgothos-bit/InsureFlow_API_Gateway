@@ -1,5 +1,5 @@
 from django.contrib.auth.password_validation import validate_password
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import Usuario
@@ -69,6 +69,14 @@ class LoginSerializer(TokenObtainPairSerializer):
         usuario = Usuario.objects.filter(email__iexact=login).first()
         if usuario:
             attrs[self.username_field] = usuario.username
+        else:
+            usuario = Usuario.objects.filter(username=login).first()
+        # Cuenta inactiva con la contraseña correcta: se explica el motivo (sin revelar nada si la clave es incorrecta).
+        if usuario and not usuario.is_active and usuario.check_password(attrs.get("password", "")):
+            if usuario.role == Usuario.ASEGURADO:
+                raise exceptions.AuthenticationFailed(
+                    "Tu cuenta está bloqueada porque no pudimos verificar tu identidad. Comunícate con un asesor.", code="cuenta_bloqueada")
+            raise exceptions.AuthenticationFailed("Tu cuenta está desactivada. Comunícate con el administrador.", code="cuenta_desactivada")
         return super().validate(attrs)
 
     @classmethod

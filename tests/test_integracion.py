@@ -37,3 +37,37 @@ class DesactivarPeritoIntegracionTests(APITestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertFalse(Usuario.objects.get(pk=perito.pk).is_active)
         llamar.assert_called_once_with("ADJUSTER", "PATCH", f"/api/v1/peritos/{perito.id_perito}", json={"disponible": False})
+
+
+class BloqueoPorKycIntegracionTests(APITestCase):
+    def test_rechazar_identidad_bloquea_la_cuenta_y_verificarla_la_desbloquea(self):
+        import json as _json
+        from unittest import mock
+        aseg = "33333333-3333-4333-8333-333333333333"
+        Usuario.objects.create_user(username="gestor2", password="ClaveSegura#2026", role="agente", email="g2@insureflow.co")
+        cliente = Usuario.objects.create_user(username="ana@example.com", password="ClaveSegura#2026", role="asegurado",
+                                              email="ana@example.com", id_asegurado=aseg)
+        datos = {"username": "gestor2", "password": "ClaveSegura#2026"}
+        token = self.client.post("/api/v1/auth/login", datos, format="json").data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + token)
+
+        class Resp:
+            def __init__(self, estado):
+                self.status_code, self.headers = 200, {"Content-Type": "application/json"}
+                self.content = _json.dumps({"id_asegurado": aseg, "kyc_status": estado}).encode()
+
+        with mock.patch.dict("os.environ", {"POLICYHOLDER_SERVICE_URL": "http://policyholder:8000"}), \
+                mock.patch("proxy.views.requests.request", return_value=Resp("rechazado")):
+            self.assertEqual(self.client.put(f"/api/v1/asegurados/{aseg}/kyc", {"kyc_status": "rechazado"}, format="json").status_code, 200)
+        self.assertFalse(Usuario.objects.get(pk=cliente.pk).is_active)
+
+        self.client.credentials()
+        resp = self.client.post("/api/v1/auth/login", {"username": "ana@example.com", "password": "ClaveSegura#2026"}, format="json")
+        self.assertEqual(resp.status_code, 401)
+        self.assertIn("identidad", str(resp.data))
+
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + token)
+        with mock.patch.dict("os.environ", {"POLICYHOLDER_SERVICE_URL": "http://policyholder:8000"}), \
+                mock.patch("proxy.views.requests.request", return_value=Resp("verificado")):
+            self.client.put(f"/api/v1/asegurados/{aseg}/kyc", {"kyc_status": "verificado"}, format="json")
+        self.assertTrue(Usuario.objects.get(pk=cliente.pk).is_active)

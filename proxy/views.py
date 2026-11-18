@@ -1,5 +1,7 @@
+import json
 import logging
 import os
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -14,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from comun.metricas import SYNC_LATENCY
+from usuarios.models import Usuario
 
 from .permisos import autorizar
 from .rutas import BLOQUEADAS, ROLES_PERMITIDOS, RUTAS, RUTAS_PUBLICAS
@@ -97,6 +100,9 @@ class ProxyView(APIView):
             return error("SERVICE_WAKING", f"{servicio} se está iniciando. Intenta de nuevo en unos segundos.",
                          status.HTTP_503_SERVICE_UNAVAILABLE)
 
+        if request.method == "PUT" and resp.status_code == 200:
+            _sincronizar_bloqueo_por_kyc(ruta, resp)
+
         respuesta = HttpResponse(resp.content, status=resp.status_code)
         for clave, valor in resp.headers.items():
             if clave.lower() not in NO_DEVOLVER:
@@ -117,6 +123,19 @@ class ProxyView(APIView):
 
     def delete(self, request, ruta):
         return self._reenviar(request, ruta)
+
+
+def _sincronizar_bloqueo_por_kyc(ruta, resp):
+    """Si el gestor rechaza la identidad (KYC) de un cliente, su cuenta queda bloqueada; si la verifica, se desbloquea."""
+    m = re.fullmatch(r"asegurados/([0-9a-fA-F-]{36})/kyc/?", ruta)
+    if not m:
+        return
+    try:
+        estado = json.loads(resp.content).get("kyc_status")
+    except ValueError:
+        return
+    if estado in ("rechazado", "verificado"):
+        Usuario.objects.filter(id_asegurado=m.group(1), role=Usuario.ASEGURADO).update(is_active=estado == "verificado")
 
 
 SITIO = Path(__file__).resolve().parent / "sitio"

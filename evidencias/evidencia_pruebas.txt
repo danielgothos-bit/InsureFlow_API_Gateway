@@ -1,5 +1,5 @@
 EVIDENCIA DE PRUEBAS · InsureFlow_API_Gateway
-Fecha: 2026-11-17 23:44
+Fecha: 2026-11-18 12:21
 Comando: USE_SQLITE=1 CELERY_EAGER=1 coverage run manage.py test -v 2
 
 Pruebas exigidas (Momento 3): tests/test_unitarias.py (2 unitarias con mocks) y tests/test_integracion.py (1 de integración).
@@ -21,12 +21,13 @@ test_servicio_caido (proxy.tests.GatewayTests.test_servicio_caido) ... ok
 test_sin_token_responde_401 (proxy.tests.GatewayTests.test_sin_token_responde_401) ... ok
 test_solo_admin_gestiona_usuarios (proxy.tests.GatewayTests.test_solo_admin_gestiona_usuarios) ... ok
 test_login_jwt_me_y_rechazo_sin_token (tests.test_integracion.AutenticacionIntegracionTests.test_login_jwt_me_y_rechazo_sin_token) ... ok
+test_rechazar_identidad_bloquea_la_cuenta_y_verificarla_la_desbloquea (tests.test_integracion.BloqueoPorKycIntegracionTests.test_rechazar_identidad_bloquea_la_cuenta_y_verificarla_la_desbloquea) ... ok
 test_desactivar_perito_lo_marca_no_disponible_en_peritaje (tests.test_integracion.DesactivarPeritoIntegracionTests.test_desactivar_perito_lo_marca_no_disponible_en_peritaje) ... ok
 test_presentacion_de_la_sustentacion_esta_publicada (tests.test_integracion.PresentacionIntegracionTests.test_presentacion_de_la_sustentacion_esta_publicada) ... ok
 test_cliente_no_puede_ver_poliza_ajena (tests.test_unitarias.PermisosUnitTests.test_cliente_no_puede_ver_poliza_ajena) ... ok
 test_cliente_si_puede_ver_su_poliza_y_gestor_todo (tests.test_unitarias.PermisosUnitTests.test_cliente_si_puede_ver_su_poliza_y_gestor_todo) ... ok
 
-Ran 22 tests in 6.810s
+Ran 23 tests in 7.715s
 OK
 
 === Reporte de cobertura (coverage.py) ===
@@ -47,15 +48,15 @@ proxy\middleware.py                              16      0   100%
 proxy\permisos.py                               100     28    72%   23-24, 31-32, 37-43, 49-50, 55-59, 65-66, 74-75, 95, 110, 119, 121, 132, 144
 proxy\rutas.py                                    4      0   100%
 proxy\servicios.py                               29     20    31%   16-37
-proxy\views.py                                  115     21    82%   64, 86, 97, 116, 119, 143-144, 153-169
+proxy\views.py                                  130     23    82%   67, 89, 100, 122, 125, 135-136, 162-163, 172-188
 usuarios\apps.py                                  4      0   100%
 usuarios\handlers.py                              1      1     0%   2
 usuarios\management\commands\crear_admin.py      17     17     0%   1-26
 usuarios\models.py                               13      0   100%
-usuarios\serializers.py                          60      3    95%   29, 51, 60
+usuarios\serializers.py                          65      4    94%   29, 51, 60, 79
 usuarios\urls.py                                  4      0   100%
 usuarios\views.py                                69      6    91%   64, 79-80, 91, 98-99
 ---------------------------------------------------------------------------
-TOTAL                                           650    248    62%
+TOTAL                                           670    251    63%
 
 6 empty files skipped.
