@@ -91,5 +91,11 @@ def usuario_detalle(request, id):
         return Response({"code": "CONFLICT", "message": "No puedes desactivar tu propia cuenta."}, status=status.HTTP_409_CONFLICT)
     if "is_active" in request.data:
         usuario.is_active = bool(request.data["is_active"])
+        # Un perito desactivado no debe recibir siniestros nuevos: se marca como no disponible en Peritaje.
+        if usuario.role == Usuario.PERITO and usuario.id_perito:
+            try:
+                llamar("ADJUSTER", "PATCH", f"/api/v1/peritos/{usuario.id_perito}", json={"disponible": usuario.is_active})
+            except ServicioError as exc:
+                return _error_servicio(exc)
     usuario.save()
     return Response(UsuarioSerializer(usuario).data)

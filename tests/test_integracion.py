@@ -22,3 +22,18 @@ class PresentacionIntegracionTests(APITestCase):
         self.assertEqual(resp.status_code, 200)
         contenido = b"".join(resp.streaming_content)  # WhiteNoise responde como archivo
         self.assertIn("Sustentación final", contenido.decode())
+
+
+class DesactivarPeritoIntegracionTests(APITestCase):
+    def test_desactivar_perito_lo_marca_no_disponible_en_peritaje(self):
+        from unittest import mock
+        Usuario.objects.create_user(username="admin1", password="ClaveSegura#2026", role="admin", email="a@insureflow.co")
+        perito = Usuario.objects.create_user(username="perito1", password="ClaveSegura#2026", role="perito", email="p@insureflow.co",
+                                             id_perito="22222222-2222-4222-8222-222222222222")
+        token = self.client.post("/api/v1/auth/login", {"username": "admin1", "password": "ClaveSegura#2026"}, format="json").data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + token)
+        with mock.patch("usuarios.views.llamar") as llamar:
+            resp = self.client.patch(f"/api/v1/auth/usuarios/{perito.id}", {"is_active": False}, format="json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(Usuario.objects.get(pk=perito.pk).is_active)
+        llamar.assert_called_once_with("ADJUSTER", "PATCH", f"/api/v1/peritos/{perito.id_perito}", json={"disponible": False})
